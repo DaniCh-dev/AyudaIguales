@@ -5,15 +5,11 @@ namespace AyudaIguales.Models
     public class Centro
     {
 
-        public int Id { get; set; }
+        public int id { get; set; }
+        [Required(ErrorMessage = "El nombre del centro es obligatorio")]
+        public string nombre { get; set; }
+        [Required(ErrorMessage = "El CIF del centro es obligatorio")]
+        public string cif { get; set; }
 
-        [Required, StringLength(100)]
-        public string Nombre { get; set; }
-
-        [Required, StringLength(20)]
-        public string CIF { get; set; }
-
-        [Required, StringLength(20)]
-        public string Codigo { get; set; }
     }
 }

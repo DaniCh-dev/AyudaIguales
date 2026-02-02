@@ -4,22 +4,19 @@ namespace AyudaIguales.Models
 {
     public enum RolUsuario
     {
-        Admin,
-        Usuario
+        admin,
+        usuario
     }
     public class Usuario
     {
-        public int Id { get; set; }
+        public int id { get; set; }
 
-        [Required, StringLength(50)]
-        public string NombreUsuario { get; set; }
+        public string nombre_usuario { get; set; }
 
-        [Required, StringLength(255)]
-        public string Password { get; set; }
+        public string correo { get; set; }
 
-        [Required, StringLength(100)]
-        public string Correo { get; set; }
+        public RolUsuario rol { get; set; }
 
-        public RolUsuario Rol { get; set; } = RolUsuario.Usuario;
+        public int id_centro { get; set; }
     }
 }

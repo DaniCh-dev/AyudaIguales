@@ -1,0 +1,30 @@
+﻿@model List<HelpMate.Models.Solicitud>
+
+@{
+    ViewData["Title"] = "Solicitudes";
+}
+
+<h2>Solicitudes de ayuda</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Asignatura</th>
+            <th>Título</th>
+            <th>Estado</th>
+            <th>Usuario</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var s in Model)
+        {
+            <tr>
+                <td>@s.Asignatura?.Nombre</td>
+                <td>@s.Titulo</td>
+                <td>@s.Estado</td>
+                <td>@s.Usuario?.Nombre</td>
+            </tr>
+        }
+    </tbody>
+</table>
+

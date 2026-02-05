@@ -12,7 +12,7 @@ builder.Services.AddHttpClient("ApiClient", client =>
 
 // csharp
 builder.Services.AddScoped<ICentroService, CentroService>();
-
+builder.Services.AddScoped<IUserService, UserService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

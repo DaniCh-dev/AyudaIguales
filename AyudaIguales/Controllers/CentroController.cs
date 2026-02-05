@@ -1,5 +1,4 @@
-﻿// CONTROLADOR CON DEPURACIÓN - CentroController.cs
-using AyudaIguales.Models;
+﻿using AyudaIguales.Models;
 using AyudaIguales.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,24 +24,18 @@ namespace AyudaIguales.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCentro(Centro centro)
         {
-            // DEBUG: Verificar que llega aquí
             Console.WriteLine("=== MÉTODO POST EJECUTADO ===");
             Console.WriteLine($"Nombre: {centro.nombre}");
             Console.WriteLine($"CIF: {centro.cif}");
             Console.WriteLine($"ModelState válido: {ModelState.IsValid}");
 
-            // Validar el modelo
             if (ModelState.IsValid)
             {
                 try
                 {
                     Console.WriteLine("=== LLAMANDO AL SERVICIO ===");
-
-                    // Llamar al servicio
                     await _centroService.CreateCentro(centro.nombre, centro.cif);
-
                     Console.WriteLine("=== SERVICIO COMPLETADO ===");
-
                     TempData["Success"] = "Centro registrado correctamente";
                     return RedirectToAction("CreateCentro");
                 }
@@ -62,6 +55,14 @@ namespace AyudaIguales.Controllers
             }
 
             return View(centro);
+        }
+
+        // GET: Obtener lista de centros (usado desde JavaScript)
+        [HttpGet]
+        public async Task<IActionResult> ObtenerCentros()
+        {
+            var centros = await _centroService.ObtenerCentrosAsync();
+            return Json(new { ok = true, centros });
         }
     }
 }

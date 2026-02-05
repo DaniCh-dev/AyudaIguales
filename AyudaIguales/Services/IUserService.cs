@@ -4,9 +4,7 @@ namespace AyudaIguales.Services
 {
     public interface IUserService
     {
-        Task<bool>  RegisterUserAsync(string nombre_usuario, string password, string correo, int id_centro, string rol);
+        Task<RegistroResponse> RegisterUserAsync(RegistroRequest request);
         Task<Usuario?> LoginUserAsync(string nombre_usuario, string password);
-
-
     }
 }

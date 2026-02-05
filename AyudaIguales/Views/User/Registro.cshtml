@@ -1,0 +1,103 @@
+﻿@model AyudaIguales.Models.RegistroRequest
+@{
+    ViewData["Title"] = "Registro";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow mt-5">
+                <div class="card-body p-4">
+                    <h1 class="card-title text-center mb-4">Registro de Usuario</h1>
+
+                    @* Mostrar mensaje de éxito *@
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success" role="alert">
+                            @TempData["Success"]
+                        </div>
+                    }
+
+                    @* Mostrar mensaje de error *@
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @TempData["Error"]
+                        </div>
+                    }
+
+                    <form asp-action="Registro" asp-controller="User" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label asp-for="nombre_usuario" class="form-label">Nombre de usuario</label>
+                            <input asp-for="nombre_usuario" class="form-control" required>
+                            <span asp-validation-for="nombre_usuario" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="correo" class="form-label">Correo electrónico</label>
+                            <input asp-for="correo" type="email" class="form-control" required>
+                            <span asp-validation-for="correo" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="password" class="form-label">Contraseña</label>
+                            <input asp-for="password" type="password" class="form-control" required>
+                            <div class="form-text">
+                                Mínimo 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial (@@$$!%*?&)
+                            </div>
+                            <span asp-validation-for="password" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="id_centro" class="form-label">Centro educativo</label>
+                            <select asp-for="id_centro" class="form-select" id="id_centro" required>
+                                <option value="">Selecciona un centro</option>
+                            </select>
+                            <span asp-validation-for="id_centro" class="text-danger"></span>
+                        </div>
+
+                        <input asp-for="rol" type="hidden" value="usuario" />
+
+                        <button type="submit" class="btn btn-primary w-100">Registrarse</button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <small>¿Ya tienes cuenta? <a asp-action="Login" asp-controller="User">Inicia sesión</a></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Cargar centros al iniciar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarCentros();
+        });
+
+        // Función para cargar los centros
+        async function cargarCentros() {
+            try {
+                const response = await fetch('@Url.Action("ObtenerCentros", "Centro")');
+                const data = await response.json();
+
+                const select = document.getElementById('id_centro');
+
+                if (data.ok && data.centros) {
+                    data.centros.forEach(centro => {
+                        const option = document.createElement('option');
+                        option.value = centro.id;
+                        option.textContent = centro.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar centros:', error);
+            }
+        }
+    </script>
+}

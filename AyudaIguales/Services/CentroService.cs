@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using AyudaIguales.Models;
 
 namespace AyudaIguales.Services
 {
@@ -14,19 +15,16 @@ namespace AyudaIguales.Services
         public async Task<bool> CreateCentro(string nombre, string cif)
         {
             var data = new { nombre, cif };
-
             var response = await _client.PostAsJsonAsync("createCentro.php", data);
 
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
 
-                // Intentar extraer el mensaje del JSON de error
                 try
                 {
                     var errorJson = JsonSerializer.Deserialize<JsonElement>(errorContent);
 
-                    // Si hay un campo "msg" en el JSON, usarlo
                     if (errorJson.TryGetProperty("msg", out JsonElement msgElement))
                     {
                         throw new Exception(msgElement.GetString());
@@ -37,11 +35,45 @@ namespace AyudaIguales.Services
                     // Si no es JSON válido, mostrar el contenido completo
                 }
 
-                // Si no se pudo extraer el mensaje, mostrar el error completo
                 throw new Exception(errorContent);
             }
 
             return true;
         }
+
+        public async Task<List<Centro>> ObtenerCentrosAsync()
+        {
+            try
+            {
+                // Obtener centros desde el endpoint PHP
+                var response = await _client.GetAsync("getCentros.php");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new List<Centro>();
+                }
+
+                var content = await response.Content.ReadAsStringAsync();
+
+                // Deserializar respuesta
+                var result = JsonSerializer.Deserialize<CentrosResponse>(content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                return result?.centros ?? new List<Centro>();
+            }
+            catch (Exception)
+            {
+                return new List<Centro>();
+            }
+        }
+    }
+
+    // Clase auxiliar para deserializar la respuesta de centros
+    public class CentrosResponse
+    {
+        public bool ok { get; set; }
+        public List<Centro> centros { get; set; }
     }
 }

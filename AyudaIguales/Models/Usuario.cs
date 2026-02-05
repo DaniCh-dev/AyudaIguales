@@ -43,4 +43,22 @@ namespace AyudaIguales.Models
         public string msg { get; set; }
         public int? id { get; set; }
     }
+
+    // Modelo para la petición de login
+    public class LoginRequest
+    {
+        [Required(ErrorMessage = "El nombre de usuario es obligatorio")]
+        public string nombre_usuario { get; set; }
+
+        [Required(ErrorMessage = "La contraseña es obligatoria")]
+        public string password { get; set; }
+    }
+
+    // Modelo para la respuesta de login
+    public class LoginResponse
+    {
+        public bool ok { get; set; }
+        public string msg { get; set; }
+        public Usuario usuario { get; set; }
+    }
 }

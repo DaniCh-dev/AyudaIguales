@@ -52,6 +52,53 @@ namespace AyudaIguales.Controllers
             return View();
         }
 
+        // POST: Iniciar sesión
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Datos no válidos";
+                return View(request);
+            }
+
+            var resultado = await _userService.LoginUserAsync(request);
+
+            if (resultado.ok)
+            {
+                // Guardar datos del usuario en sesión
+                HttpContext.Session.SetString("UserId", resultado.usuario.id.ToString());
+                HttpContext.Session.SetString("UserName", resultado.usuario.nombre_usuario);
+                HttpContext.Session.SetString("UserRole", resultado.usuario.rol.ToString());
+
+                TempData["Success"] = "Inicio de sesión exitoso";
+
+                // Redirigir según el rol
+                if (resultado.usuario.rol == RolUsuario.admin)
+                {
+                    return RedirectToAction("Index", "Admin");
+                }
+                else
+                {
+                    return RedirectToAction("Index", "Home");
+                }
+            }
+            else
+            {
+                TempData["Error"] = resultado.msg;
+                return View(request);
+            }
+        }
+
+        // GET: Cerrar sesión
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+            TempData["Success"] = "Sesión cerrada correctamente";
+            return RedirectToAction("Login");
+        }
+
         public IActionResult Index()
         {
             return View();

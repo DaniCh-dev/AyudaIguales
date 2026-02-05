@@ -1,5 +1,60 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model AyudaIguales.Models.LoginRequest
 @{
+    ViewData["Title"] = "Iniciar Sesión";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow mt-5">
+                <div class="card-body p-4">
+                    <h1 class="card-title text-center mb-4">Iniciar Sesión</h1>
+
+                    @* Mostrar mensaje de éxito *@
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success" role="alert">
+                            @TempData["Success"]
+                        </div>
+                    }
+
+                    @* Mostrar mensaje de error *@
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @TempData["Error"]
+                        </div>
+                    }
+
+                    <form asp-action="Login" asp-controller="User" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label asp-for="nombre_usuario" class="form-label">Nombre de usuario</label>
+                            <input asp-for="nombre_usuario" class="form-control" required autofocus>
+                            <span asp-validation-for="nombre_usuario" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="password" class="form-label">Contraseña</label>
+                            <input asp-for="password" type="password" class="form-control" required>
+                            <span asp-validation-for="password" class="text-danger"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <small>¿No tienes cuenta? <a asp-action="Registro" asp-controller="User">Regístrate</a></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

@@ -1,4 +1,5 @@
 ﻿using AyudaIguales.Models;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace AyudaIguales.Services
@@ -63,24 +64,77 @@ namespace AyudaIguales.Services
             }
         }
 
-        public async Task<Usuario?> LoginUserAsync(string nombre_usuario, string password)
+        public async Task<LoginResponse> LoginUserAsync(LoginRequest request)
         {
-            var data = new
-            {
-                nombre_usuario,
-                password
-            };
+            // Validaciones básicas
+            if (string.IsNullOrWhiteSpace(request.nombre_usuario))
+                return new LoginResponse { ok = false, msg = "El nombre de usuario es obligatorio" };
 
-            var response = await _client.PostAsJsonAsync("api/usuarios/login", data);
+            if (string.IsNullOrWhiteSpace(request.password))
+                return new LoginResponse { ok = false, msg = "La contraseña es obligatoria" };
 
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                // Recoger el texto de error que devuelve PHP
-                var errorText = await response.Content.ReadAsStringAsync();
-                throw new Exception(errorText);
+                var data = new
+                {
+                    nombre_usuario = request.nombre_usuario,
+                    password = request.password
+                };
+
+                // Enviar petición al endpoint PHP
+                var response = await _client.PostAsJsonAsync("loginUser.php", data);
+                var jsonString = await response.Content.ReadAsStringAsync();
+
+                // Deserializar manualmente para manejar el enum
+                using var jsonDoc = JsonDocument.Parse(jsonString);
+                var root = jsonDoc.RootElement;
+
+                // Verificar si la respuesta es exitosa
+                if (!root.TryGetProperty("ok", out var okElement) || !okElement.GetBoolean())
+                {
+                    var msgElement = root.TryGetProperty("msg", out var msg) ? msg.GetString() : "Error desconocido";
+                    return new LoginResponse { ok = false, msg = msgElement };
+                }
+
+                // Obtener el objeto usuario
+                if (!root.TryGetProperty("usuario", out var usuarioElement))
+                {
+                    return new LoginResponse { ok = false, msg = "No se recibió información del usuario" };
+                }
+
+                // Convertir rol string a enum
+                var rolString = usuarioElement.GetProperty("rol").GetString();
+                RolUsuario rolEnum;
+
+                // Intentar parsear el rol, si falla usar 'usuario' por defecto
+                if (!Enum.TryParse<RolUsuario>(rolString, true, out rolEnum))
+                {
+                    rolEnum = RolUsuario.usuario;
+                }
+
+                // Crear objeto usuario manualmente
+                var usuario = new Usuario
+                {
+                    id = usuarioElement.GetProperty("id").GetInt32(),
+                    nombre_usuario = usuarioElement.GetProperty("nombre_usuario").GetString(),
+                    correo = usuarioElement.GetProperty("correo").GetString(),
+                    rol = rolEnum,
+                    id_centro = usuarioElement.GetProperty("id_centro").GetInt32()
+                };
+
+                var mensajeResponse = root.TryGetProperty("msg", out var msgResp) ? msgResp.GetString() : "Login exitoso";
+
+                return new LoginResponse
+                {
+                    ok = true,
+                    msg = mensajeResponse,
+                    usuario = usuario
+                };
             }
-
-            return await response.Content.ReadFromJsonAsync<Usuario>();
+            catch (Exception ex)
+            {
+                return new LoginResponse { ok = false, msg = $"Error de conexión: {ex.Message}" };
+            }
         }
     }
 }

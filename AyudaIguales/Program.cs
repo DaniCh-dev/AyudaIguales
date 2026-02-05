@@ -1,3 +1,5 @@
+using AyudaIguales.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,7 +7,11 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient("ApiClient", client =>
 {
     client.BaseAddress = new Uri("http://localhost/ayuda_iguales/");
+    client.Timeout = TimeSpan.FromSeconds(30);
 });
+
+// csharp
+builder.Services.AddScoped<ICentroService, CentroService>();
 
 var app = builder.Build();
 

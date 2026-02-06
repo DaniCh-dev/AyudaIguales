@@ -71,6 +71,8 @@ namespace AyudaIguales.Controllers
                 HttpContext.Session.SetString("UserId", resultado.usuario.id.ToString());
                 HttpContext.Session.SetString("UserName", resultado.usuario.nombre_usuario);
                 HttpContext.Session.SetString("UserRole", resultado.usuario.rol.ToString());
+                HttpContext.Session.SetString("CentroId", resultado.usuario.id_centro.ToString());
+
 
                 TempData["Success"] = "Inicio de sesión exitoso";
 
@@ -92,7 +94,6 @@ namespace AyudaIguales.Controllers
             return RedirectToAction("Login");
         }
 
-        // GET: Obtener todos los usuarios (para filtros de admin)
         [HttpGet]
         public async Task<IActionResult> ObtenerUsuarios()
         {
@@ -103,7 +104,16 @@ namespace AyudaIguales.Controllers
                 return Json(new { ok = false, msg = "No autorizado" });
             }
 
-            var resultado = await _userService.ObtenerTodosUsuariosAsync();
+            // Obtener id_centro de la sesión
+            var centroIdString = HttpContext.Session.GetString("CentroId");
+            if (string.IsNullOrEmpty(centroIdString))
+            {
+                return Json(new { ok = false, msg = "No se pudo obtener el centro" });
+            }
+
+            int id_centro = int.Parse(centroIdString);
+            var resultado = await _userService.ObtenerTodosUsuariosAsync(id_centro);
+
             return Json(resultado);
         }
         public IActionResult Index()

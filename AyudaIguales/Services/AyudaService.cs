@@ -12,13 +12,13 @@ namespace AyudaIguales.Services
             _client = httpClientFactory.CreateClient("ApiClient");
         }
 
-        // Obtener todas las ayudas
-        public async Task<ObtenerAyudasResponse> ObtenerAyudasAsync()
+        // Obtener todas las ayudas del centro
+        public async Task<ObtenerAyudasResponse> ObtenerAyudasAsync(int id_centro)
         {
             try
             {
-                // Llamar al endpoint PHP
-                var response = await _client.GetAsync("getAyudas.php");
+                // Llamar al endpoint PHP con el id_centro
+                var response = await _client.GetAsync($"getAyudas.php?id_centro={id_centro}");
                 var result = await response.Content.ReadFromJsonAsync<ObtenerAyudasResponse>();
 
                 return result ?? new ObtenerAyudasResponse { ok = false, msg = "Error al procesar la respuesta" };
@@ -29,19 +29,20 @@ namespace AyudaIguales.Services
             }
         }
 
-        // Obtener ayudas con filtros
-        public async Task<ObtenerAyudasResponse> ObtenerAyudasConFiltrosAsync(FiltrosAyuda filtros)
+        // Obtener ayudas con filtros del centro
+        public async Task<ObtenerAyudasResponse> ObtenerAyudasConFiltrosAsync(FiltrosAyuda filtros, int id_centro)
         {
             try
             {
-                // Preparar datos para enviar al PHP
+                // Preparar datos para enviar al PHP (incluir id_centro)
                 var data = new
                 {
                     busqueda = filtros.busqueda ?? "",
                     estado = filtros.estado ?? "",
                     id_usuario = filtros.id_usuario?.ToString() ?? "",
                     fecha = filtros.fecha ?? "",
-                    respuestas = filtros.respuestas ?? ""
+                    respuestas = filtros.respuestas ?? "",
+                    id_centro = id_centro
                 };
 
                 // Enviar petición al endpoint PHP
@@ -91,13 +92,13 @@ namespace AyudaIguales.Services
             }
         }
 
-        // Obtener ayuda por ID
-        public async Task<Ayuda> ObtenerAyudaPorIdAsync(int id)
+        // Obtener ayuda por ID del centro
+        public async Task<Ayuda?> ObtenerAyudaPorIdAsync(int id, int id_centro)
         {
             try
             {
-                // Llamar al endpoint PHP
-                var response = await _client.GetAsync($"getAyuda.php?id={id}");
+                // Llamar al endpoint PHP con id y id_centro
+                var response = await _client.GetAsync($"getAyuda.php?id={id}&id_centro={id_centro}");
                 var jsonString = await response.Content.ReadAsStringAsync();
 
                 using var jsonDoc = JsonDocument.Parse(jsonString);
@@ -113,17 +114,24 @@ namespace AyudaIguales.Services
                     return null;
                 }
 
+                // Obtener fecha como string y validar
+                var fechaString = ayudaElement.GetProperty("fecha").GetString();
+                if (string.IsNullOrEmpty(fechaString))
+                {
+                    return null;
+                }
+
                 // Crear objeto ayuda manualmente
                 var ayuda = new Ayuda
                 {
                     id = ayudaElement.GetProperty("id").GetInt32(),
                     id_usuario = ayudaElement.GetProperty("id_usuario").GetInt32(),
-                    descripcion = ayudaElement.GetProperty("descripcion").GetString(),
-                    contenido = ayudaElement.GetProperty("contenido").GetString(),
+                    descripcion = ayudaElement.GetProperty("descripcion").GetString() ?? "",
+                    contenido = ayudaElement.GetProperty("contenido").GetString() ?? "",
                     activa = ayudaElement.GetProperty("activa").GetBoolean(),
-                    fecha = DateTime.Parse(ayudaElement.GetProperty("fecha").GetString()),
+                    fecha = DateTime.Parse(fechaString),
                     nombre_usuario = ayudaElement.TryGetProperty("nombre_usuario", out var nombreElement)
-                        ? nombreElement.GetString()
+                        ? nombreElement.GetString() ?? ""
                         : "",
                     num_respuestas = ayudaElement.TryGetProperty("num_respuestas", out var numRespElement)
                         ? numRespElement.GetInt32()

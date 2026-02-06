@@ -69,14 +69,14 @@ namespace AyudaIguales.Models
     public class UsuarioSimple
     {
         public int id { get; set; }
-        public string nombre_usuario { get; set; }
+        public string nombre_usuario { get; set; } = string.Empty;
     }
 
     // Modelo para la respuesta al obtener usuarios
     public class ObtenerUsuariosResponse
     {
         public bool ok { get; set; }
-        public string msg { get; set; }
-        public List<UsuarioSimple> usuarios { get; set; }
+        public string msg { get; set; } = string.Empty;
+        public List<UsuarioSimple> usuarios { get; set; } = new List<UsuarioSimple>();
     }
 }

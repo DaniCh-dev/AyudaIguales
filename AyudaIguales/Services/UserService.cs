@@ -136,13 +136,12 @@ namespace AyudaIguales.Services
                 return new LoginResponse { ok = false, msg = $"Error de conexión: {ex.Message}" };
             }
         }
-        // Obtener todos los usuarios (para filtros de admin)
-        public async Task<ObtenerUsuariosResponse> ObtenerTodosUsuariosAsync()
+        public async Task<ObtenerUsuariosResponse> ObtenerTodosUsuariosAsync(int id_centro)
         {
             try
             {
-                // Llamar al endpoint PHP
-                var response = await _client.GetAsync("getUsuarios.php");
+                // Llamar al endpoint PHP con el id_centro
+                var response = await _client.GetAsync($"getUsuarios.php?id_centro={id_centro}");
                 var result = await response.Content.ReadFromJsonAsync<ObtenerUsuariosResponse>();
 
                 return result ?? new ObtenerUsuariosResponse { ok = false, msg = "Error al procesar la respuesta" };

@@ -18,6 +18,8 @@ namespace AyudaIguales.Controllers
 
         // GET: Mostrar página principal de ayudas (con o sin filtros)
         [HttpGet]
+        // GET: Mostrar página principal de ayudas (con o sin filtros)
+        [HttpGet]
         public async Task<IActionResult> AyudaHome(string busqueda, string estado, int? id_usuario, string fecha, string respuestas)
         {
             // Verificar si hay sesión iniciada
@@ -25,6 +27,15 @@ namespace AyudaIguales.Controllers
             {
                 return RedirectToAction("Login", "User");
             }
+
+            // Obtener id_centro de la sesión
+            var centroIdString = HttpContext.Session.GetString("CentroId");
+            if (string.IsNullOrEmpty(centroIdString))
+            {
+                TempData["Error"] = "No se pudo obtener el centro del usuario";
+                return RedirectToAction("Login", "User");
+            }
+            int id_centro = int.Parse(centroIdString);
 
             // Si hay filtros, usarlos; si no, obtener todas las ayudas
             ObtenerAyudasResponse resultado;
@@ -42,26 +53,26 @@ namespace AyudaIguales.Controllers
                     respuestas = respuestas
                 };
 
-                resultado = await _ayudaService.ObtenerAyudasConFiltrosAsync(filtros);
+                resultado = await _ayudaService.ObtenerAyudasConFiltrosAsync(filtros, id_centro);
             }
             else
             {
-                // Obtener todas las ayudas
-                resultado = await _ayudaService.ObtenerAyudasAsync();
+                // Obtener todas las ayudas del centro
+                resultado = await _ayudaService.ObtenerAyudasAsync(id_centro);
             }
 
-            // Cargar usuarios si es admin (para el filtro)
+            // Cargar usuarios si es admin (solo del mismo centro)
             var userRole = HttpContext.Session.GetString("UserRole");
             if (userRole == "admin")
             {
-                var usuarios = await _userService.ObtenerTodosUsuariosAsync();
+                var usuarios = await _userService.ObtenerTodosUsuariosAsync(id_centro);
                 if (usuarios.ok)
                 {
                     ViewBag.Usuarios = usuarios.usuarios;
                 }
             }
 
-            // Pasar los filtros actuales a la vista para mantenerlos seleccionados
+            // Pasar los filtros actuales a la vista
             ViewBag.BusquedaActual = busqueda ?? "";
             ViewBag.EstadoActual = estado ?? "";
             ViewBag.UsuarioActual = id_usuario;
@@ -76,6 +87,56 @@ namespace AyudaIguales.Controllers
             {
                 TempData["Error"] = resultado.msg;
                 return View(new List<Ayuda>());
+            }
+        }
+
+        // GET: Mostrar formulario para crear ayuda
+        [HttpGet]
+        public IActionResult CrearAyuda()
+        {
+            // Verificar si hay sesión iniciada
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")))
+            {
+                return RedirectToAction("Login", "User");
+            }
+
+            return View();
+        }
+
+        // POST: Crear nueva ayuda
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CrearAyuda(CrearAyudaRequest request)
+        {
+            // Verificar si hay sesión iniciada
+            var userIdString = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return RedirectToAction("Login", "User");
+            }
+
+            // Validar modelo
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Datos no válidos";
+                return View(request);
+            }
+
+            // Asignar el ID del usuario desde la sesión
+            request.id_usuario = int.Parse(userIdString);
+
+            // Llamar al servicio para crear la ayuda
+            var resultado = await _ayudaService.CrearAyudaAsync(request);
+
+            if (resultado.ok)
+            {
+                TempData["Success"] = "Ayuda publicada correctamente";
+                return RedirectToAction("AyudaHome");
+            }
+            else
+            {
+                TempData["Error"] = resultado.msg;
+                return View(request);
             }
         }
     }

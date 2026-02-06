@@ -92,6 +92,20 @@ namespace AyudaIguales.Controllers
             return RedirectToAction("Login");
         }
 
+        // GET: Obtener todos los usuarios (para filtros de admin)
+        [HttpGet]
+        public async Task<IActionResult> ObtenerUsuarios()
+        {
+            // Verificar si es admin
+            var userRole = HttpContext.Session.GetString("UserRole");
+            if (userRole != "admin")
+            {
+                return Json(new { ok = false, msg = "No autorizado" });
+            }
+
+            var resultado = await _userService.ObtenerTodosUsuariosAsync();
+            return Json(resultado);
+        }
         public IActionResult Index()
         {
             return View();

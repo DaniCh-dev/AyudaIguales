@@ -136,5 +136,21 @@ namespace AyudaIguales.Services
                 return new LoginResponse { ok = false, msg = $"Error de conexión: {ex.Message}" };
             }
         }
+        // Obtener todos los usuarios (para filtros de admin)
+        public async Task<ObtenerUsuariosResponse> ObtenerTodosUsuariosAsync()
+        {
+            try
+            {
+                // Llamar al endpoint PHP
+                var response = await _client.GetAsync("getUsuarios.php");
+                var result = await response.Content.ReadFromJsonAsync<ObtenerUsuariosResponse>();
+
+                return result ?? new ObtenerUsuariosResponse { ok = false, msg = "Error al procesar la respuesta" };
+            }
+            catch (Exception ex)
+            {
+                return new ObtenerUsuariosResponse { ok = false, msg = $"Error de conexión: {ex.Message}" };
+            }
+        }
     }
 }

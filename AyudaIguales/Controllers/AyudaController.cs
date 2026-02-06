@@ -9,6 +9,7 @@ namespace AyudaIguales.Controllers
         private readonly IAyudaService _ayudaService;
         private readonly IUserService _userService;
 
+        // Constructor con ambos servicios inyectados
         public AyudaController(IAyudaService ayudaService, IUserService userService)
         {
             _ayudaService = ayudaService;
@@ -49,55 +50,32 @@ namespace AyudaIguales.Controllers
                 resultado = await _ayudaService.ObtenerAyudasAsync();
             }
 
+            // Cargar usuarios si es admin (para el filtro)
+            var userRole = HttpContext.Session.GetString("UserRole");
+            if (userRole == "admin")
+            {
+                var usuarios = await _userService.ObtenerTodosUsuariosAsync();
+                if (usuarios.ok)
+                {
+                    ViewBag.Usuarios = usuarios.usuarios;
+                }
+            }
+
+            // Pasar los filtros actuales a la vista para mantenerlos seleccionados
+            ViewBag.BusquedaActual = busqueda ?? "";
+            ViewBag.EstadoActual = estado ?? "";
+            ViewBag.UsuarioActual = id_usuario;
+            ViewBag.FechaActual = fecha ?? "";
+            ViewBag.RespuestasActual = respuestas ?? "";
+
             if (resultado.ok)
             {
-                // Pasar los filtros actuales a la vista para mantenerlos seleccionados
-                ViewBag.BusquedaActual = busqueda;
-                ViewBag.EstadoActual = estado;
-                ViewBag.UsuarioActual = id_usuario;
-                ViewBag.FechaActual = fecha;
-                ViewBag.RespuestasActual = respuestas;
-
                 return View(resultado.ayudas);
             }
             else
             {
                 TempData["Error"] = resultado.msg;
                 return View(new List<Ayuda>());
-            }
-        }
-
-        // GET: Obtener usuarios para el filtro (solo admin)
-        [HttpGet]
-        public async Task<IActionResult> ObtenerUsuariosParaFiltro()
-        {
-            // Verificar si es admin
-            var userRole = HttpContext.Session.GetString("UserRole");
-            if (userRole != "admin")
-            {
-                return Json(new { ok = false, msg = "No autorizado" });
-            }
-
-            try
-            {
-                // Aquí deberías tener un método en tu servicio para obtener usuarios
-                // Por ahora devuelvo un ejemplo con consulta directa
-                // Deberías crear un método GetAllUsersAsync en IUserService
-
-                // Ejemplo temporal - Reemplaza esto con tu servicio real
-                return Json(new
-                {
-                    ok = true,
-                    usuarios = new[]
-                    {
-                        new { id = 1, nombre_usuario = "Usuario1" },
-                        new { id = 2, nombre_usuario = "Usuario2" }
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { ok = false, msg = $"Error: {ex.Message}" });
             }
         }
     }

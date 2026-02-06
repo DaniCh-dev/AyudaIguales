@@ -7,7 +7,7 @@
     <div class="row">
         <!-- CONTENIDO PRINCIPAL - Listado de ayudas -->
         <div class="col-lg-9">
-            <!-- Cabecera con buscador y botón crear ayuda -->
+            <!-- Cabecera con título y botón crear ayuda -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="mb-0">
                     <i class="bi bi-question-circle-fill text-primary"></i>
@@ -39,18 +39,28 @@
             <!-- Buscador principal -->
             <div class="card shadow-sm mb-4">
                 <div class="card-body">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white">
-                            <i class="bi bi-search"></i>
-                        </span>
-                        <input type="text"
-                               id="txtBuscador"
-                               class="form-control border-start-0"
-                               placeholder="Buscar por título o contenido...">
-                        <button class="btn btn-primary" type="button" id="btnBuscar">
-                            Buscar
-                        </button>
-                    </div>
+                    <form asp-controller="Ayuda" asp-action="AyudaHome" method="get">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" 
+                                   name="busqueda" 
+                                   class="form-control border-start-0" 
+                                   placeholder="Buscar por título o contenido..."
+                                   value="@ViewBag.BusquedaActual">
+                            
+                            <!-- Mantener filtros actuales en campos ocultos -->
+                            <input type="hidden" name="estado" value="@ViewBag.EstadoActual" />
+                            <input type="hidden" name="id_usuario" value="@ViewBag.UsuarioActual" />
+                            <input type="hidden" name="fecha" value="@ViewBag.FechaActual" />
+                            <input type="hidden" name="respuestas" value="@ViewBag.RespuestasActual" />
+                            
+                            <button class="btn btn-primary" type="submit">
+                                Buscar
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -64,9 +74,9 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h5 class="card-title mb-0">
-                                        <a asp-controller="Ayuda"
-                                           asp-action="DetalleAyuda"
-                                           asp-route-id="@ayuda.id"
+                                        <a asp-controller="Ayuda" 
+                                           asp-action="DetalleAyuda" 
+                                           asp-route-id="@ayuda.id" 
                                            class="text-decoration-none text-dark">
                                             @ayuda.descripcion
                                         </a>
@@ -91,9 +101,9 @@
                                         <span class="mx-2">|</span>
                                         <i class="bi bi-chat-fill"></i> @ayuda.num_respuestas respuestas
                                     </div>
-                                    <a asp-controller="Ayuda"
-                                       asp-action="DetalleAyuda"
-                                       asp-route-id="@ayuda.id"
+                                    <a asp-controller="Ayuda" 
+                                       asp-action="DetalleAyuda" 
+                                       asp-route-id="@ayuda.id" 
                                        class="btn btn-sm btn-outline-primary">
                                         Ver detalles
                                         <i class="bi bi-arrow-right"></i>
@@ -107,7 +117,7 @@
                 {
                     <div class="text-center py-5">
                         <i class="bi bi-inbox fs-1 text-muted"></i>
-                        <p class="mt-3 text-muted">No hay ayudas disponibles</p>
+                        <p class="mt-3 text-muted">No se encontraron ayudas con los filtros aplicados</p>
                     </div>
                 }
             </div>
@@ -123,84 +133,115 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <!-- Filtro por estado -->
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">
-                            <i class="bi bi-toggle-on"></i>
-                            Estado
-                        </label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="filtroEstado" id="estadoTodas" value="" checked>
-                            <label class="form-check-label" for="estadoTodas">
-                                Todas
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="filtroEstado" id="estadoActivas" value="1">
-                            <label class="form-check-label" for="estadoActivas">
-                                Activas
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="filtroEstado" id="estadoInactivas" value="0">
-                            <label class="form-check-label" for="estadoInactivas">
-                                Inactivas
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Filtro por usuario (solo para admin) -->
-                    @if (Context.Session.GetString("UserRole") == "admin")
-                    {
+                    <form asp-controller="Ayuda" asp-action="AyudaHome" method="get">
+                        
+                        <!-- Mantener búsqueda actual -->
+                        <input type="hidden" name="busqueda" value="@ViewBag.BusquedaActual" />
+                        
+                        <!-- Filtro por estado -->
                         <div class="mb-4">
                             <label class="form-label fw-bold">
-                                <i class="bi bi-person-fill"></i>
-                                Usuario
+                                <i class="bi bi-toggle-on"></i>
+                                Estado
                             </label>
-                            <select class="form-select" id="filtroUsuario">
-                                <option value="">Todos los usuarios</option>
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="radio" 
+                                       name="estado" 
+                                       id="estadoTodas" 
+                                       value="" 
+                                       @(string.IsNullOrEmpty(ViewBag.EstadoActual) ? "checked" : "")>
+                                <label class="form-check-label" for="estadoTodas">
+                                    Todas
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="radio" 
+                                       name="estado" 
+                                       id="estadoActivas" 
+                                       value="1"
+                                       @(ViewBag.EstadoActual == "1" ? "checked" : "")>
+                                <label class="form-check-label" for="estadoActivas">
+                                    Activas
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="radio" 
+                                       name="estado" 
+                                       id="estadoInactivas" 
+                                       value="0"
+                                       @(ViewBag.EstadoActual == "0" ? "checked" : "")>
+                                <label class="form-check-label" for="estadoInactivas">
+                                    Inactivas
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Filtro por usuario (solo para admin) -->
+                        @if (Context.Session.GetString("UserRole") == "admin")
+                        {
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-person-fill"></i>
+                                    Usuario
+                                </label>
+                                <select class="form-select" name="id_usuario">
+                                    <option value="">Todos los usuarios</option>
+                                    @if (ViewBag.Usuarios != null)
+                                    {
+                                        foreach (var usuario in ViewBag.Usuarios)
+                                        {
+                                            var isSelected = ViewBag.UsuarioActual != null && ViewBag.UsuarioActual == usuario.id;
+                                            <option value="@usuario.id" selected="@isSelected">
+                                                @usuario.nombre_usuario
+                                            </option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        }
+
+                        <!-- Filtro por fecha -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-calendar-fill"></i>
+                                Fecha
+                            </label>
+                            <select class="form-select" name="fecha">
+                                <option value="" selected="@(string.IsNullOrEmpty(ViewBag.FechaActual))">Todas las fechas</option>
+                                <option value="hoy" selected="@(ViewBag.FechaActual == "hoy")">Hoy</option>
+                                <option value="semana" selected="@(ViewBag.FechaActual == "semana")">Esta semana</option>
+                                <option value="mes" selected="@(ViewBag.FechaActual == "mes")">Este mes</option>
                             </select>
                         </div>
-                    }
 
-                    <!-- Filtro por fecha -->
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">
-                            <i class="bi bi-calendar-fill"></i>
-                            Fecha
-                        </label>
-                        <select class="form-select" id="filtroFecha">
-                            <option value="">Todas las fechas</option>
-                            <option value="hoy">Hoy</option>
-                            <option value="semana">Esta semana</option>
-                            <option value="mes">Este mes</option>
-                        </select>
-                    </div>
+                        <!-- Filtro por respuestas -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-chat-dots-fill"></i>
+                                Respuestas
+                            </label>
+                            <select class="form-select" name="respuestas">
+                                <option value="" selected="@(string.IsNullOrEmpty(ViewBag.RespuestasActual))">Todas</option>
+                                <option value="sin_respuestas" selected="@(ViewBag.RespuestasActual == "sin_respuestas")">Sin respuestas</option>
+                                <option value="con_respuestas" selected="@(ViewBag.RespuestasActual == "con_respuestas")">Con respuestas</option>
+                            </select>
+                        </div>
 
-                    <!-- Filtro por respuestas -->
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">
-                            <i class="bi bi-chat-dots-fill"></i>
-                            Respuestas
-                        </label>
-                        <select class="form-select" id="filtroRespuestas">
-                            <option value="">Todas</option>
-                            <option value="sin_respuestas">Sin respuestas</option>
-                            <option value="con_respuestas">Con respuestas</option>
-                        </select>
-                    </div>
-
-                    <!-- Botones de acción -->
-                    <div class="d-grid gap-2">
-                        <button type="button" class="btn btn-primary" id="btnAplicarFiltros">
-                            <i class="bi bi-check-circle"></i>
-                            Aplicar filtros
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary" id="btnLimpiarFiltros">
-                            <i class="bi bi-x-circle"></i>
-                            Limpiar
-                        </button>
-                    </div>
+                        <!-- Botones de acción -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i>
+                                Aplicar filtros
+                            </button>
+                            <a asp-controller="Ayuda" asp-action="AyudaHome" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i>
+                                Limpiar
+                            </a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -208,190 +249,17 @@
 </div>
 
 @section Scripts {
-    <script>
-        // Cargar usuarios para filtro (solo admin)
-        document.addEventListener('DOMContentLoaded', function() {
-            const userRole = '@Context.Session.GetString("UserRole")';
-            if (userRole === 'admin') {
-                cargarUsuarios();
-            }
-            configurarEventos();
-        });
-
-        // Configurar eventos
-        function configurarEventos() {
-            // Búsqueda
-            document.getElementById('btnBuscar').addEventListener('click', aplicarFiltros);
-            document.getElementById('txtBuscador').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') aplicarFiltros();
-            });
-
-            // Aplicar filtros
-            document.getElementById('btnAplicarFiltros').addEventListener('click', aplicarFiltros);
-
-            // Limpiar filtros
-            document.getElementById('btnLimpiarFiltros').addEventListener('click', limpiarFiltros);
-        }
-
-        // Cargar usuarios para el filtro
-        async function cargarUsuarios() {
-            try {
-                const response = await fetch('@Url.Action("ObtenerUsuariosParaFiltro", "Ayuda")');
-                const data = await response.json();
-
-                if (data.ok && data.usuarios) {
-                    const select = document.getElementById('filtroUsuario');
-                    data.usuarios.forEach(usuario => {
-                        const option = document.createElement('option');
-                        option.value = usuario.id;
-                        option.textContent = usuario.nombre_usuario;
-                        select.appendChild(option);
-                    });
-                }
-            } catch (error) {
-                console.error('Error al cargar usuarios:', error);
-            }
-        }
-
-        // Aplicar filtros
-        async function aplicarFiltros() {
-            try {
-                // Recoger valores de los filtros
-                const filtros = {
-                    busqueda: document.getElementById('txtBuscador').value.trim(),
-                    estado: document.querySelector('input[name="filtroEstado"]:checked').value,
-                    id_usuario: document.getElementById('filtroUsuario')?.value || null,
-                    fecha: document.getElementById('filtroFecha').value,
-                    respuestas: document.getElementById('filtroRespuestas').value
-                };
-
-                // Enviar petición al servidor
-                const response = await fetch('@Url.Action("FiltrarAyudas", "Ayuda")', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(filtros)
-                });
-
-                const data = await response.json();
-
-                if (data.ok) {
-                    mostrarAyudas(data.ayudas);
-                } else {
-                    mostrarError(data.msg);
-                }
-            } catch (error) {
-                console.error('Error al filtrar ayudas:', error);
-                mostrarError('Error al aplicar filtros');
-            }
-        }
-
-        // Mostrar ayudas en el DOM
-        function mostrarAyudas(ayudas) {
-            const container = document.getElementById('listadoAyudas');
-
-            if (ayudas.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-5">
-                        <i class="bi bi-inbox fs-1 text-muted"></i>
-                        <p class="mt-3 text-muted">No se encontraron ayudas</p>
-                    </div>
-                `;
-                return;
-            }
-
-            let html = '';
-            ayudas.forEach(ayuda => {
-                const fecha = new Date(ayuda.fecha);
-                const fechaFormateada = fecha.toLocaleDateString('es-ES', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-
-                const badgeEstado = ayuda.activa
-                    ? '<span class="badge bg-success">Activa</span>'
-                    : '<span class="badge bg-secondary">Inactiva</span>';
-
-                const contenidoCorto = ayuda.contenido.length > 150
-                    ? ayuda.contenido.substring(0, 150) + '...'
-                    : ayuda.contenido;
-
-                html += `
-                    <div class="card shadow-sm mb-3 hover-shadow">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h5 class="card-title mb-0">
-                                    <a href="@Url.Action("DetalleAyuda", "Ayuda")?id=${ayuda.id}" class="text-decoration-none text-dark">
-                                        ${ayuda.descripcion}
-                                    </a>
-                                </h5>
-                                ${badgeEstado}
-                            </div>
-                            <p class="card-text text-muted mb-2">
-                                ${contenidoCorto}
-                            </p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="text-muted small">
-                                    <i class="bi bi-person-fill"></i> ${ayuda.nombre_usuario}
-                                    <span class="mx-2">|</span>
-                                    <i class="bi bi-calendar-fill"></i> ${fechaFormateada}
-                                    <span class="mx-2">|</span>
-                                    <i class="bi bi-chat-fill"></i> ${ayuda.num_respuestas} respuestas
-                                </div>
-                                <a href="@Url.Action("DetalleAyuda", "Ayuda")?id=${ayuda.id}" class="btn btn-sm btn-outline-primary">
-                                    Ver detalles
-                                    <i class="bi bi-arrow-right"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        // Limpiar filtros
-        function limpiarFiltros() {
-            document.getElementById('txtBuscador').value = '';
-            document.getElementById('estadoTodas').checked = true;
-
-            const filtroUsuario = document.getElementById('filtroUsuario');
-            if (filtroUsuario) filtroUsuario.value = '';
-
-            document.getElementById('filtroFecha').value = '';
-            document.getElementById('filtroRespuestas').value = '';
-
-            // Recargar página para mostrar todas las ayudas
-            window.location.href = '@Url.Action("AyudaHome", "Ayuda")';
-        }
-
-        // Mostrar error
-        function mostrarError(mensaje) {
-            const container = document.getElementById('listadoAyudas');
-            container.innerHTML = `
-                <div class="alert alert-danger" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                    ${mensaje}
-                </div>
-            `;
-        }
-    </script>
-
     <style>
+        /* Efecto hover en las tarjetas */
         .hover-shadow {
             transition: all 0.3s ease;
         }
-
-            .hover-shadow:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-            }
-
+        .hover-shadow:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+        
+        /* Estilos para el sidebar sticky */
         .sticky-top {
             z-index: 1020;
         }

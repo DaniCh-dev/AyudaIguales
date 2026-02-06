@@ -20,6 +20,7 @@ builder.Services.AddHttpClient("ApiClient", client =>
 
 builder.Services.AddScoped<ICentroService, CentroService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAyudaService, AyudaService>();
 
 builder.Services.AddSession(options =>
 {

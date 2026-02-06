@@ -17,7 +17,6 @@ namespace AyudaIguales.Services
         {
             try
             {
-                // Llamar al endpoint PHP con el id_centro
                 var response = await _client.GetAsync($"getAyudas.php?id_centro={id_centro}");
                 var result = await response.Content.ReadFromJsonAsync<ObtenerAyudasResponse>();
 
@@ -34,7 +33,6 @@ namespace AyudaIguales.Services
         {
             try
             {
-                // Preparar datos para enviar al PHP (incluir id_centro)
                 var data = new
                 {
                     busqueda = filtros.busqueda ?? "",
@@ -45,7 +43,6 @@ namespace AyudaIguales.Services
                     id_centro = id_centro
                 };
 
-                // Enviar petición al endpoint PHP
                 var response = await _client.PostAsJsonAsync("filterAyudas.php", data);
                 var result = await response.Content.ReadFromJsonAsync<ObtenerAyudasResponse>();
 
@@ -57,7 +54,7 @@ namespace AyudaIguales.Services
             }
         }
 
-        // Crear una nueva ayuda
+        // Crear una nueva ayuda con soporte de imagenes
         public async Task<CrearAyudaResponse> CrearAyudaAsync(CrearAyudaRequest request)
         {
             // Validaciones
@@ -72,19 +69,49 @@ namespace AyudaIguales.Services
 
             try
             {
-                // Preparar datos para enviar al PHP
-                var data = new
+                // Crear contenido multipart si hay imagenes, sino JSON
+                if (request.imagenes != null && request.imagenes.Any())
                 {
-                    id_usuario = request.id_usuario.ToString(),
-                    descripcion = request.descripcion,
-                    contenido = request.contenido
-                };
+                    // Usar MultipartFormDataContent para enviar archivos
+                    using var formData = new MultipartFormDataContent();
 
-                // Enviar petición al endpoint PHP
-                var response = await _client.PostAsJsonAsync("createAyuda.php", data);
-                var result = await response.Content.ReadFromJsonAsync<CrearAyudaResponse>();
+                    // Agregar datos basicos como campos de texto
+                    formData.Add(new StringContent(request.id_usuario.ToString()), "id_usuario");
+                    formData.Add(new StringContent(request.descripcion), "descripcion");
+                    formData.Add(new StringContent(request.contenido), "contenido");
 
-                return result ?? new CrearAyudaResponse { ok = false, msg = "Error al procesar la respuesta" };
+                    // Agregar cada imagen
+                    foreach (var imagen in request.imagenes)
+                    {
+                        if (imagen.Length > 0)
+                        {
+                            var streamContent = new StreamContent(imagen.OpenReadStream());
+                            streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(imagen.ContentType);
+                            formData.Add(streamContent, "imagenes[]", imagen.FileName);
+                        }
+                    }
+
+                    // Enviar peticion con archivos
+                    var response = await _client.PostAsync("createAyuda.php", formData);
+                    var result = await response.Content.ReadFromJsonAsync<CrearAyudaResponse>();
+
+                    return result ?? new CrearAyudaResponse { ok = false, msg = "Error al procesar la respuesta" };
+                }
+                else
+                {
+                    // Si no hay imagenes, enviar JSON normal
+                    var data = new
+                    {
+                        id_usuario = request.id_usuario.ToString(),
+                        descripcion = request.descripcion,
+                        contenido = request.contenido
+                    };
+
+                    var response = await _client.PostAsJsonAsync("createAyuda.php", data);
+                    var result = await response.Content.ReadFromJsonAsync<CrearAyudaResponse>();
+
+                    return result ?? new CrearAyudaResponse { ok = false, msg = "Error al procesar la respuesta" };
+                }
             }
             catch (Exception ex)
             {
@@ -97,7 +124,6 @@ namespace AyudaIguales.Services
         {
             try
             {
-                // Llamar al endpoint PHP con id y id_centro
                 var response = await _client.GetAsync($"getAyuda.php?id={id}&id_centro={id_centro}");
                 var jsonString = await response.Content.ReadAsStringAsync();
 
@@ -114,14 +140,13 @@ namespace AyudaIguales.Services
                     return null;
                 }
 
-                // Obtener fecha como string y validar
                 var fechaString = ayudaElement.GetProperty("fecha").GetString();
                 if (string.IsNullOrEmpty(fechaString))
                 {
                     return null;
                 }
 
-                // Crear objeto ayuda manualmente
+                // Crear objeto ayuda con imagenes
                 var ayuda = new Ayuda
                 {
                     id = ayudaElement.GetProperty("id").GetInt32(),
@@ -137,6 +162,20 @@ namespace AyudaIguales.Services
                         ? numRespElement.GetInt32()
                         : 0
                 };
+
+                // Cargar imagenes si existen
+                if (ayudaElement.TryGetProperty("imagenes", out var imagenesElement) && imagenesElement.ValueKind == JsonValueKind.Array)
+                {
+                    ayuda.imagenes = new List<string>();
+                    foreach (var img in imagenesElement.EnumerateArray())
+                    {
+                        var ruta = img.GetString();
+                        if (!string.IsNullOrEmpty(ruta))
+                        {
+                            ayuda.imagenes.Add(ruta);
+                        }
+                    }
+                }
 
                 return ayuda;
             }

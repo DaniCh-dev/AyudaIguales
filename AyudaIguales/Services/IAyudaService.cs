@@ -6,13 +6,10 @@ namespace AyudaIguales.Services
     {
         // Obtener todas las ayudas del centro
         Task<ObtenerAyudasResponse> ObtenerAyudasAsync(int id_centro);
-
         // Obtener ayudas con filtros del centro
         Task<ObtenerAyudasResponse> ObtenerAyudasConFiltrosAsync(FiltrosAyuda filtros, int id_centro);
-
-        // Crear una nueva ayuda
+        // Crear una nueva ayuda (ahora con soporte de imagenes)
         Task<CrearAyudaResponse> CrearAyudaAsync(CrearAyudaRequest request);
-
         // Obtener ayuda por ID del centro (puede retornar null)
         Task<Ayuda?> ObtenerAyudaPorIdAsync(int id, int id_centro);
     }

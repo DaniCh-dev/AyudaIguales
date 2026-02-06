@@ -28,10 +28,11 @@
                         </div>
                     }
 
-                    <form asp-action="CrearAyuda" asp-controller="Ayuda" method="post">
+                    <!-- IMPORTANTE: agregar enctype para subir archivos -->
+                    <form asp-action="CrearAyuda" asp-controller="Ayuda" method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
 
-                        <!-- Título/Descripción -->
+                        <!-- Titulo/Descripcion -->
                         <div class="mb-3">
                             <label asp-for="descripcion" class="form-label fw-bold">
                                 <i class="bi bi-pencil-fill text-primary"></i>
@@ -65,6 +66,27 @@
                             <span asp-validation-for="contenido" class="text-danger"></span>
                         </div>
 
+                        <!-- Campo para subir imagenes -->
+                        <div class="mb-3">
+                            <label asp-for="imagenes" class="form-label fw-bold">
+                                <i class="bi bi-image-fill text-primary"></i>
+                                Imágenes (opcional)
+                            </label>
+                            <input asp-for="imagenes"
+                                   type="file"
+                                   class="form-control"
+                                   accept="image/jpeg,image/png,image/gif,image/webp"
+                                   multiple
+                                   id="imagenesInput">
+                            <div class="form-text">
+                                Puedes adjuntar hasta 5 imágenes (formatos: JPG, PNG, GIF, WEBP - máximo 5MB cada una)
+                            </div>
+                            <span asp-validation-for="imagenes" class="text-danger"></span>
+
+                            <!-- Previsualizacion de imagenes -->
+                            <div id="previewContainer" class="mt-3 d-flex flex-wrap gap-2"></div>
+                        </div>
+
                         <!-- Botones -->
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                             <a asp-controller="Ayuda"
@@ -94,6 +116,7 @@
                         <li>Incluye ejemplos si es posible</li>
                         <li>Menciona qué has intentado hacer</li>
                         <li>Usa un lenguaje claro y respetuoso</li>
+                        <li>Adjunta imágenes que ayuden a entender el problema</li>
                     </ul>
                 </div>
             </div>
@@ -103,4 +126,48 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <!-- Script para preview de imagenes -->
+    <script>
+        document.getElementById('imagenesInput').addEventListener('change', function(e) {
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = '';
+
+            const files = Array.from(e.target.files);
+
+            // Limitar a 5 imagenes
+            if (files.length > 5) {
+                alert('Solo puedes subir un máximo de 5 imágenes');
+                e.target.value = '';
+                return;
+            }
+
+            files.forEach(file => {
+                // Validar tamaño (5MB maximo)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`El archivo ${file.name} supera los 5MB`);
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const div = document.createElement('div');
+                    div.className = 'position-relative';
+                    div.style.width = '100px';
+                    div.style.height = '100px';
+
+                    const img = document.createElement('img');
+                    img.src = event.target.result;
+                    img.className = 'img-thumbnail';
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+
+                    div.appendChild(img);
+                    previewContainer.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    </script>
 }

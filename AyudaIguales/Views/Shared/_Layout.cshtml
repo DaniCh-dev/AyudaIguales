@@ -30,20 +30,22 @@
 
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Index">
-                                Inicio
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Chat" asp-action="Index">
-                                Chat
-                            </a>
-                        </li>
+                        
+                       
 
                         @* Mostrar opciones según si hay sesión iniciada *@
                         @if (Context.Session.GetString("UserId") != null)
                         {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Ayuda" asp-action="AyudaHome">
+                                    Inicio
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Chat" asp-action="Home">
+                                    Chat
+                                </a>
+                            </li>
                             <!-- Usuario logueado: mostrar perfil y cerrar sesión -->
                             <li class="nav-item">
                                 <a class="btn btn-outline-light btn-sm d-flex align-items-center gap-2"
@@ -63,6 +65,12 @@
                         {
                             <!-- Usuario no logueado: mostrar login y registro -->
                             <li class="nav-item">
+                                <a class="nav-link" asp-controller="Home" asp-action="Index">
+                                    Inicio
+                                </a>
+                            </li>
+                            <li class="nav-item">
+
                                 <a class="nav-link" asp-controller="Centro" asp-action="CreateCentro">
                                     Crear Centro
                                 </a>

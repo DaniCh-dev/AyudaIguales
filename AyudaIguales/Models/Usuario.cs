@@ -33,7 +33,11 @@ namespace AyudaIguales.Models
         [Required(ErrorMessage = "Debe seleccionar un centro")]
         public int id_centro { get; set; }
 
-        public string rol { get; set; } = "usuario";
+        // Checkbox para marcar si es administrador
+        public bool es_admin { get; set; } = false;
+
+        // Propiedad calculada que devuelve el rol según el checkbox
+        public string rol => es_admin ? "admin" : "usuario";
     }
 
     // Modelo para la respuesta de registro

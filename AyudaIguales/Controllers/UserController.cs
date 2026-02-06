@@ -74,15 +74,8 @@ namespace AyudaIguales.Controllers
 
                 TempData["Success"] = "Inicio de sesión exitoso";
 
-                // Redirigir según el rol
-                if (resultado.usuario.rol == RolUsuario.admin)
-                {
-                    return RedirectToAction("Index", "Admin");
-                }
-                else
-                {
-                    return RedirectToAction("Index", "Home");
-                }
+                
+               return RedirectToAction("AyudaHome", "Ayuda");
             }
             else
             {

@@ -58,7 +58,13 @@
                             <span asp-validation-for="id_centro" class="text-danger"></span>
                         </div>
 
-                        <input asp-for="rol" type="hidden" value="usuario" />
+                        @* Checkbox para marcar si es administrador *@
+                        <div class="mb-3 form-check">
+                            <input asp-for="es_admin" class="form-check-input" type="checkbox" id="es_admin">
+                            <label class="form-check-label" for="es_admin">
+                                Registrar como Administrador
+                            </label>
+                        </div>
 
                         <button type="submit" class="btn btn-primary w-100">Registrarse</button>
                     </form>

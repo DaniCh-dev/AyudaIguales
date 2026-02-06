@@ -40,24 +40,46 @@
                                 Chat
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Centro" asp-action="CreateCentro">
-                                Crear Centro
-                            </a>
-                        </li>
 
-                        <li class="nav-item">
-                            <a class="btn btn-outline-light btn-sm"
-                               asp-controller="User" asp-action="Login">
-                                Iniciar sesión
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-light btn-sm text-primary fw-semibold"
-                               asp-controller="User" asp-action="Registro">
-                                Registrarse
-                            </a>
-                        </li>
+                        @* Mostrar opciones según si hay sesión iniciada *@
+                        @if (Context.Session.GetString("UserId") != null)
+                        {
+                            <!-- Usuario logueado: mostrar perfil y cerrar sesión -->
+                            <li class="nav-item">
+                                <a class="btn btn-outline-light btn-sm d-flex align-items-center gap-2"
+                                   asp-controller="User" asp-action="Perfil">
+                                    <i class="bi bi-person-circle"></i>
+                                    @Context.Session.GetString("UserName")
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-light btn-sm text-primary fw-semibold"
+                                   asp-controller="User" asp-action="Logout">
+                                    Cerrar sesión
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <!-- Usuario no logueado: mostrar login y registro -->
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Centro" asp-action="CreateCentro">
+                                    Crear Centro
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-outline-light btn-sm"
+                                   asp-controller="User" asp-action="Login">
+                                    Iniciar sesión
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-light btn-sm text-primary fw-semibold"
+                                   asp-controller="User" asp-action="Registro">
+                                    Registrarse
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>

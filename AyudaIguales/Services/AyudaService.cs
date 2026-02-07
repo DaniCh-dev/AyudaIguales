@@ -93,24 +93,48 @@ namespace AyudaIguales.Services
 
                     // Enviar peticion con archivos
                     var response = await _client.PostAsync("createAyuda.php", formData);
-                    var result = await response.Content.ReadFromJsonAsync<CrearAyudaResponse>();
 
-                    return result ?? new CrearAyudaResponse { ok = false, msg = "Error al procesar la respuesta" };
+                    // Leer la respuesta como string primero para depurar
+                    var responseContent = await response.Content.ReadAsStringAsync();
+
+                    // Intentar parsear como JSON
+                    try
+                    {
+                        var result = await response.Content.ReadFromJsonAsync<CrearAyudaResponse>();
+                        return result ?? new CrearAyudaResponse { ok = false, msg = "Error al procesar la respuesta" };
+                    }
+                    catch
+                    {
+                        // Si falla el parseo, devolver el contenido crudo para debug
+                        return new CrearAyudaResponse { ok = false, msg = $"Respuesta inválida del servidor: {responseContent}" };
+                    }
                 }
                 else
                 {
-                    // Si no hay imagenes, enviar JSON normal
+                    // Si no hay imagenes, enviar JSON normal - CAMBIO AQUI: id_usuario como numero
                     var data = new
                     {
-                        id_usuario = request.id_usuario.ToString(),
+                        id_usuario = request.id_usuario, // Cambio: quitar .ToString()
                         descripcion = request.descripcion,
                         contenido = request.contenido
                     };
 
                     var response = await _client.PostAsJsonAsync("createAyuda.php", data);
-                    var result = await response.Content.ReadFromJsonAsync<CrearAyudaResponse>();
 
-                    return result ?? new CrearAyudaResponse { ok = false, msg = "Error al procesar la respuesta" };
+                    // Leer la respuesta como string primero para depurar
+                    var responseContent = await response.Content.ReadAsStringAsync();
+
+                    // Intentar parsear como JSON
+                    try
+                    {
+                        var result = await response.Content.ReadFromJsonAsync<CrearAyudaResponse>();
+                        return result ?? new CrearAyudaResponse { ok = false, msg = "Error al procesar la respuesta" };
+                    }
+                    catch
+                    {
+                        // Si falla el parseo, devolver el contenido crudo para debug
+                        return new CrearAyudaResponse { ok = false, msg = $"Respuesta inválida del servidor: {responseContent}" };
+                    }
                 }
             }
             catch (Exception ex)
@@ -182,6 +206,22 @@ namespace AyudaIguales.Services
             catch (Exception)
             {
                 return null;
+            }
+        }
+
+        // Obtener respuestas de una ayuda con valoraciones y permisos del usuario actual
+        public async Task<ObtenerRespuestasResponse> ObtenerRespuestasAsync(int id_ayuda, int id_usuario_actual)
+        {
+            try
+            {
+                var response = await _client.GetAsync($"getRespuestas.php?id_ayuda={id_ayuda}&id_usuario_actual={id_usuario_actual}");
+                var result = await response.Content.ReadFromJsonAsync<ObtenerRespuestasResponse>();
+
+                return result ?? new ObtenerRespuestasResponse { ok = false, msg = "Error al procesar la respuesta" };
+            }
+            catch (Exception ex)
+            {
+                return new ObtenerRespuestasResponse { ok = false, msg = $"Error de conexión: {ex.Message}" };
             }
         }
     }

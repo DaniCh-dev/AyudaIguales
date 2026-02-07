@@ -12,5 +12,7 @@ namespace AyudaIguales.Services
         Task<CrearAyudaResponse> CrearAyudaAsync(CrearAyudaRequest request);
         // Obtener ayuda por ID del centro (puede retornar null)
         Task<Ayuda?> ObtenerAyudaPorIdAsync(int id, int id_centro);
+        // Obtener respuestas de una ayuda con valoraciones
+        Task<ObtenerRespuestasResponse> ObtenerRespuestasAsync(int id_ayuda, int id_usuario_actual);
     }
 }

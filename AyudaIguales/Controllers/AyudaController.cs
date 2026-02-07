@@ -18,8 +18,6 @@ namespace AyudaIguales.Controllers
 
         // GET: Mostrar página principal de ayudas (con o sin filtros)
         [HttpGet]
-        // GET: Mostrar página principal de ayudas (con o sin filtros)
-        [HttpGet]
         public async Task<IActionResult> AyudaHome(string busqueda, string estado, int? id_usuario, string fecha, string respuestas)
         {
             // Verificar si hay sesión iniciada
@@ -138,6 +136,45 @@ namespace AyudaIguales.Controllers
                 TempData["Error"] = resultado.msg;
                 return View(request);
             }
+        }
+
+        // GET: Mostrar detalle de una ayuda con sus respuestas
+        [HttpGet]
+        public async Task<IActionResult> DetalleAyuda(int id)
+        {
+            // Verificar si hay sesion iniciada
+            var userIdString = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return RedirectToAction("Login", "User");
+            }
+
+            // Obtener id_centro de la sesion
+            var centroIdString = HttpContext.Session.GetString("CentroId");
+            if (string.IsNullOrEmpty(centroIdString))
+            {
+                TempData["Error"] = "No se pudo obtener el centro del usuario";
+                return RedirectToAction("Login", "User");
+            }
+            int id_centro = int.Parse(centroIdString);
+            int id_usuario_actual = int.Parse(userIdString);
+
+            // Obtener la ayuda
+            var ayuda = await _ayudaService.ObtenerAyudaPorIdAsync(id, id_centro);
+            if (ayuda == null)
+            {
+                TempData["Error"] = "Ayuda no encontrada";
+                return RedirectToAction("AyudaHome");
+            }
+
+            // Obtener las respuestas de la ayuda
+            var respuestasResult = await _ayudaService.ObtenerRespuestasAsync(id, id_usuario_actual);
+
+            // Pasar datos a la vista mediante ViewBag
+            ViewBag.Respuestas = respuestasResult.ok ? respuestasResult.respuestas : new List<RespuestaDetalle>();
+            ViewBag.CantidadRespuestas = respuestasResult.ok ? respuestasResult.respuestas.Count : 0;
+
+            return View(ayuda);
         }
     }
 }

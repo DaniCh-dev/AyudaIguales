@@ -60,4 +60,26 @@ namespace AyudaIguales.Models
         public string? fecha { get; set; }
         public string? respuestas { get; set; }
     }
+    // Modelo para una respuesta con informacion completa
+    public class RespuestaDetalle
+    {
+        public int id { get; set; }
+        public int id_ayuda { get; set; }
+        public int id_usuario { get; set; }
+        public string contenido { get; set; } = string.Empty;
+        public DateTime fecha { get; set; }
+        public string nombre_usuario { get; set; } = string.Empty;
+        public double nota_promedio { get; set; }
+        public bool puede_valorar { get; set; }
+        public bool ya_valorado { get; set; }
+        public List<string> imagenes { get; set; } = new List<string>();
+    }
+
+    // Modelo para la respuesta al obtener respuestas de una ayuda
+    public class ObtenerRespuestasResponse
+    {
+        public bool ok { get; set; }
+        public string msg { get; set; } = string.Empty;
+        public List<RespuestaDetalle> respuestas { get; set; } = new List<RespuestaDetalle>();
+    }
 }

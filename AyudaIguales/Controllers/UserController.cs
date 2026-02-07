@@ -74,7 +74,7 @@ namespace AyudaIguales.Controllers
                 HttpContext.Session.SetString("CentroId", resultado.usuario.id_centro.ToString());
 
 
-                TempData["Success"] = "Inicio de sesión exitoso";
+                
 
                 
                return RedirectToAction("AyudaHome", "Ayuda");

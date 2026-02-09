@@ -41,6 +41,9 @@
             <div class="card shadow-sm mb-4">
                 <div class="card-body">
                     <form asp-controller="Ayuda" asp-action="AyudaHome" method="get">
+                        <!-- AÑADIR ESTE CAMPO OCULTO -->
+                        <input type="hidden" name="id_centro" value="@Context.Session.GetString("CentroId")" />
+
                         <div class="input-group">
                             <span class="input-group-text bg-white">
                                 <i class="bi bi-search"></i>
@@ -149,6 +152,9 @@
                 </div>
                 <div class="card-body">
                     <form asp-controller="Ayuda" asp-action="AyudaHome" method="get">
+
+                        <!-- CAMPO OCULTO -->
+                        <input type="hidden" name="id_centro" value="@Context.Session.GetString("CentroId")" />
 
                         <!-- Mantener búsqueda actual -->
                         <input type="hidden" name="busqueda" value="@ViewBag.BusquedaActual" />

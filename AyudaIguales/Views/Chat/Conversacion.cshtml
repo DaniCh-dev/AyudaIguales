@@ -1,0 +1,176 @@
+﻿@using AyudaIguales.Models
+@{
+    ViewData["Title"] = "Chat";
+    var apiUrl = "http://localhost/ayuda_iguales/";
+    var infoChat = ViewBag.InfoChat as InfoChat;
+    var mensajes = ViewBag.Mensajes as List<Mensaje> ?? new List<Mensaje>();
+}
+
+<div class="container-fluid mt-4" style="height: calc(100vh - 150px);">
+    <div class="row h-100">
+        <div class="col-12">
+            <div class="card h-100 d-flex flex-column">
+                <!-- Header del chat -->
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <a asp-controller="Chat" asp-action="Index" class="btn btn-sm btn-light me-2">
+                                <i class="bi bi-arrow-left"></i>
+                            </a>
+                            <i class="bi bi-person-circle"></i>
+                            <strong>@infoChat?.nombre_otro_usuario</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensajes -->
+                <div class="card-body flex-grow-1 overflow-auto" id="mensajesContainer" style="max-height: calc(100vh - 300px);">
+                    @if (mensajes != null && mensajes.Count > 0)
+                    {
+                        
+                        @foreach (var mensaje in mensajes)
+                        {
+                            <div class="mb-3 @(mensaje.es_propio ? "text-end" : "text-start")">
+                                <div class="d-inline-block" style="max-width: 70%;">
+                                    @if (!mensaje.es_propio)
+                                    {
+                                        <small class="text-muted d-block mb-1">@mensaje.nombre_usuario</small>
+                                    }
+
+                                    <div class="@(mensaje.es_propio ? "bg-primary text-white" : "bg-light") rounded p-3">
+                                        @if (!string.IsNullOrEmpty(mensaje.contenido))
+                                        {
+                                            <p class="mb-0">@mensaje.contenido</p>
+                                        }
+
+                                        <!-- Imagenes del mensaje -->
+                                        @if (mensaje.imagenes != null && mensaje.imagenes.Count > 0)
+                                        {
+                                            <div class="mt-2">
+                                                @foreach (var imagen in mensaje.imagenes)
+                                                {
+                                                    <img src="@(apiUrl + imagen)" class="img-fluid rounded mb-1" alt="Imagen" style="max-width: 200px;" />
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <small class="text-muted d-block mt-1">
+                                        @mensaje.fecha.ToString("dd/MM/yyyy HH:mm")
+                                    </small>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted mt-5">
+                            <i class="bi bi-chat-square-text fs-1"></i>
+                            <p class="mt-2">No hay mensajes aún. ¡Inicia la conversación!</p>
+                        </div>
+                    }
+                </div>
+
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show m-3 mb-0" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <!-- Formulario para enviar mensaje -->
+                <div class="card-footer">
+                    <form asp-controller="Chat" asp-action="EnviarMensaje" method="post" enctype="multipart/form-data" id="formMensaje">
+                        <input type="hidden" name="id_chat" value="@infoChat?.id_chat" />
+
+                        <div class="input-group">
+                            <!-- Input de imagenes oculto -->
+                            <input type="file" name="imagenes" id="imagenes" class="d-none" accept="image/*" multiple />
+
+                            <!-- Boton para adjuntar imagenes -->
+                            <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('imagenes').click()">
+                                <i class="bi bi-paperclip"></i>
+                            </button>
+
+                            <!-- Campo de texto -->
+                            <input type="text" name="contenido" id="contenido" class="form-control"
+                                   placeholder="Escribe un mensaje..." required />
+
+                            <!-- Boton enviar -->
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send-fill"></i>
+                                Enviar
+                            </button>
+                        </div>
+
+                        <!-- Mostrar imagenes seleccionadas -->
+                        <div id="imagenesPreview" class="mt-2"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Scroll automatico al ultimo mensaje
+        const container = document.getElementById('mensajesContainer');
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Preview de imagenes seleccionadas
+        document.getElementById('imagenes').addEventListener('change', function(e) {
+            const preview = document.getElementById('imagenesPreview');
+            preview.innerHTML = '';
+
+            if (this.files.length > 5) {
+                alert('Solo puedes subir un máximo de 5 imágenes');
+                this.value = '';
+                return;
+            }
+
+            Array.from(this.files).forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'd-inline-block position-relative me-2';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" class="rounded" style="width: 60px; height: 60px; object-fit: cover;" />
+                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0"
+                                onclick="removeImage(${index})" style="padding: 0.15rem 0.4rem;">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    `;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        // Funcion para remover imagen
+        function removeImage(index) {
+            const input = document.getElementById('imagenes');
+            const dt = new DataTransfer();
+            const files = Array.from(input.files);
+
+            files.forEach((file, i) => {
+                if (i !== index) dt.items.add(file);
+            });
+
+            input.files = dt.files;
+            input.dispatchEvent(new Event('change'));
+        }
+
+        // Enviar con Enter
+        document.getElementById('contenido').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('formMensaje').submit();
+            }
+        });
+    </script>
+}

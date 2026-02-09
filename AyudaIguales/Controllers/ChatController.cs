@@ -111,5 +111,76 @@ namespace AyudaIguales.Controllers
             // Pasar todo el objeto ObtenerUsuariosResponse
             return View(resultado);
         }
+
+        // GET: Mostrar conversacion de un chat
+        [HttpGet]
+        public async Task<IActionResult> Conversacion(int id)
+        {
+            // Verificar si hay sesion iniciada
+            var userIdString = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return RedirectToAction("Login", "User");
+            }
+
+            int id_usuario = int.Parse(userIdString);
+
+            // Obtener informacion del chat
+            var infoResult = await _chatService.ObtenerInfoChatAsync(id, id_usuario);
+
+            if (!infoResult.ok || infoResult.info == null)
+            {
+                TempData["Error"] = infoResult.msg;
+                return RedirectToAction("Index");
+            }
+
+            // Obtener mensajes del chat
+            var mensajesResult = await _chatService.ObtenerMensajesAsync(id, id_usuario);
+
+            if (!mensajesResult.ok)
+            {
+                TempData["Error"] = mensajesResult.msg;
+                return RedirectToAction("Index");
+            }
+
+            // Pasar datos a la vista
+            ViewBag.InfoChat = infoResult.info;
+            ViewBag.Mensajes = mensajesResult.mensajes;
+
+            return View();
+        }
+
+        // POST: Enviar mensaje
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EnviarMensaje(EnviarMensajeRequest request)
+        {
+            // Verificar si hay sesion iniciada
+            var userIdString = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return RedirectToAction("Login", "User");
+            }
+
+            // Asignar el ID del usuario desde la sesion
+            request.id_usuario = int.Parse(userIdString);
+
+            // Llamar al servicio para enviar el mensaje
+            var resultado = await _chatService.EnviarMensajeAsync(request);
+
+            if (resultado.ok)
+            {
+                TempData["Success"] = "Mensaje enviado";
+            }
+            else
+            {
+                TempData["Error"] = resultado.msg;
+            }
+
+            // Redirigir de vuelta a la conversacion
+            return RedirectToAction("Conversacion", new { id = request.id_chat });
+        }
+
+
     }
 }

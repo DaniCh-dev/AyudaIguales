@@ -12,5 +12,14 @@ namespace AyudaIguales.Services
 
         // Crear o obtener chat entre dos usuarios
         Task<CrearChatResponse> CrearChatAsync(int id_usuario1, int id_usuario2);
+        
+        // Obtener informacion del chat
+        Task<ObtenerInfoChatResponse> ObtenerInfoChatAsync(int id_chat, int id_usuario);
+
+        // Obtener mensajes de un chat
+        Task<ObtenerMensajesResponse> ObtenerMensajesAsync(int id_chat, int id_usuario);
+
+        // Enviar mensaje en un chat
+        Task<EnviarMensajeResponse> EnviarMensajeAsync(EnviarMensajeRequest request);
     }
 }

@@ -22,4 +22,12 @@ namespace AyudaIguales.Models
         public int? id { get; set; }
         public List<string> imagenes { get; set; } = new List<string>();
     }
+
+    // Response al eliminar respuesta
+    public class EliminarRespuestaResponse
+    {
+        public bool ok { get; set; }
+        public string msg { get; set; } = string.Empty;
+        public int id_ayuda { get; set; }
+    }
 }

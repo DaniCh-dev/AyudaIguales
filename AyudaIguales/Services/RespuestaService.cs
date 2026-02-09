@@ -73,5 +73,29 @@ namespace AyudaIguales.Services
                 return new CrearRespuestaResponse { ok = false, msg = $"Error de conexión: {ex.Message}" };
             }
         }
+
+
+        // Eliminar respuesta (solo admin)
+        public async Task<EliminarRespuestaResponse> EliminarRespuestaAsync(int id, int id_usuario, string rol)
+        {
+            try
+            {
+                var data = new
+                {
+                    id = id,
+                    id_usuario = id_usuario,
+                    rol = rol
+                };
+
+                var response = await _client.PostAsJsonAsync("deleteRespuesta.php", data);
+                var result = await response.Content.ReadFromJsonAsync<EliminarRespuestaResponse>();
+
+                return result ?? new EliminarRespuestaResponse { ok = false, msg = "Error al procesar la respuesta" };
+            }
+            catch (Exception ex)
+            {
+                return new EliminarRespuestaResponse { ok = false, msg = $"Error de conexión: {ex.Message}" };
+            }
+        }
     }
 }

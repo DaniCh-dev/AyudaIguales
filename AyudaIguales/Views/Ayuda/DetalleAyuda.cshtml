@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Detalle de Ayuda";
     var apiUrl = "http://localhost/ayuda_iguales/";
+    var userRole = Context.Session.GetString("UserRole");
+
     // Obtener las respuestas del ViewBag
     var respuestas = ViewBag.Respuestas as List<RespuestaDetalle> ?? new List<RespuestaDetalle>();
     var cantidadRespuestas = ViewBag.CantidadRespuestas ?? 0;
@@ -73,10 +75,25 @@
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <!-- Usuario que respondio y fecha -->
-                                <p class="mb-1">
-                                    <strong>@respuesta.nombre_usuario</strong>
-                                    <small class="text-muted ms-2">@respuesta.fecha.ToString("dd/MM/yyyy HH:mm")</small>
-                                </p>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <p class="mb-0">
+                                        <strong>@respuesta.nombre_usuario</strong>
+                                        <small class="text-muted ms-2">@respuesta.fecha.ToString("dd/MM/yyyy HH:mm")</small>
+                                    </p>
+
+                                    <!-- Boton de eliminar para admin -->
+                                    @if (userRole == "admin")
+                                    {
+                                        <form asp-controller="Ayuda" asp-action="EliminarRespuesta" method="post" class="d-inline"
+                                              onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta respuesta? Esta acción no se puede deshacer.');">
+                                            <input type="hidden" name="id" value="@respuesta.id" />
+                                            <input type="hidden" name="id_ayuda" value="@Model.id" />
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Eliminar respuesta">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
 
                                 <!-- Contenido de la respuesta -->
                                 <p class="mt-2">@respuesta.contenido</p>
@@ -153,15 +170,15 @@
         // Script para mostrar mensaje de exito o error si existe
         @if (TempData["Success"] != null)
         {
-                    <text>
-                    alert('@TempData["Success"]');
-                    </text>
+                <text>
+                alert('@TempData["Success"]');
+                </text>
         }
         @if (TempData["Error"] != null)
         {
-                    <text>
-                    alert('@TempData["Error"]');
-                    </text>
+                <text>
+                alert('@TempData["Error"]');
+                </text>
         }
     </script>
 }

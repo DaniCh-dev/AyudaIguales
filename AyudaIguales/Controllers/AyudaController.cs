@@ -254,6 +254,38 @@ namespace AyudaIguales.Controllers
             return RedirectToAction("DetalleAyuda", new { id = request.id_ayuda });
         }
 
+        // POST: Eliminar respuesta (solo admin)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EliminarRespuesta(int id, int id_ayuda)
+        {
+            // Verificar si hay sesion iniciada
+            var userIdString = HttpContext.Session.GetString("UserId");
+            var userRole = HttpContext.Session.GetString("UserRole");
+
+            if (string.IsNullOrEmpty(userIdString) || userRole != "admin")
+            {
+                TempData["Error"] = "No tienes permisos para realizar esta acción";
+                return RedirectToAction("DetalleAyuda", new { id = id_ayuda });
+            }
+
+            int id_usuario = int.Parse(userIdString);
+
+            // Llamar al servicio de respuesta para eliminar
+            var resultado = await _respuestaService.EliminarRespuestaAsync(id, id_usuario, userRole);
+
+            if (resultado.ok)
+            {
+                TempData["Success"] = "Respuesta eliminada correctamente";
+            }
+            else
+            {
+                TempData["Error"] = resultado.msg;
+            }
+
+            return RedirectToAction("DetalleAyuda", new { id = id_ayuda });
+        }
+
         // POST: Eliminar ayuda (solo admin)
         [HttpPost]
         [ValidateAntiForgeryToken]

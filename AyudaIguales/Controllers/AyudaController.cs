@@ -174,6 +174,9 @@ namespace AyudaIguales.Controllers
             ViewBag.Respuestas = respuestasResult.ok ? respuestasResult.respuestas : new List<RespuestaDetalle>();
             ViewBag.CantidadRespuestas = respuestasResult.ok ? respuestasResult.respuestas.Count : 0;
 
+            // DEBUG 
+            System.Diagnostics.Debug.WriteLine($"OK: {respuestasResult.ok}");
+            System.Diagnostics.Debug.WriteLine($"Cantidad: {respuestasResult.respuestas?.Count ?? 0}");
             return View(ayuda);
         }
     }

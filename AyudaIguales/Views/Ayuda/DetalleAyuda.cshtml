@@ -1,7 +1,11 @@
 ﻿@model Ayuda
+@using AyudaIguales.Models
 @{
     ViewData["Title"] = "Detalle de Ayuda";
     var apiUrl = "http://localhost/ayuda_iguales/";
+    // Obtener las respuestas del ViewBag
+    var respuestas = ViewBag.Respuestas as List<RespuestaDetalle> ?? new List<RespuestaDetalle>();
+    var cantidadRespuestas = ViewBag.CantidadRespuestas ?? 0;
 }
 
 <div class="container mt-4">
@@ -48,13 +52,13 @@
     <!-- Seccion de respuestas -->
     <div class="card">
         <div class="card-header">
-            <h5 class="mb-0">Respuestas (@ViewBag.CantidadRespuestas)</h5>
+            <h5 class="mb-0">Respuestas (@cantidadRespuestas)</h5>
         </div>
         <div class="card-body">
-            @if (ViewBag.Respuestas != null && ViewBag.Respuestas.Count > 0)
+            @if (respuestas != null && respuestas.Count > 0)
             {
                 <!-- Listar todas las respuestas -->
-                @foreach (var respuesta in ViewBag.Respuestas)
+                @foreach (var respuesta in respuestas)
                 {
                     <div class="border-bottom pb-3 mb-3">
                         <div class="d-flex justify-content-between align-items-start">
@@ -140,15 +144,15 @@
         // Script para mostrar mensaje de exito o error si existe
         @if (TempData["Success"] != null)
         {
-                <text>
-                alert('@TempData["Success"]');
-                </text>
+                    <text>
+                    alert('@TempData["Success"]');
+                    </text>
         }
         @if (TempData["Error"] != null)
         {
-                <text>
-                alert('@TempData["Error"]');
-                </text>
+                    <text>
+                    alert('@TempData["Error"]');
+                    </text>
         }
     </script>
 }

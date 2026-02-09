@@ -39,10 +39,19 @@
             }
         </div>
         <div class="card-footer">
-            <!-- Boton para responder a la ayuda -->
-            <a href="@Url.Action("Responder", "Ayuda", new { id = Model.id })" class="btn btn-primary">
-                Responder
-            </a>
+            <!-- Boton para responder solo si la ayuda esta activa -->
+            @if (Model.activa)
+            {
+                <a href="@Url.Action("Responder", "Ayuda", new { id = Model.id })" class="btn btn-primary">
+                    Responder
+                </a>
+            }
+            else
+            {
+                <button class="btn btn-secondary" disabled>
+                    <i class="bi bi-lock-fill"></i> Ayuda desactivada
+                </button>
+            }
             <a href="@Url.Action("AyudaHome", "Ayuda")" class="btn btn-secondary">
                 Volver al listado
             </a>

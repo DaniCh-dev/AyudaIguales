@@ -1,6 +1,7 @@
 ﻿@model List<AyudaIguales.Models.Ayuda>
 @{
     ViewData["Title"] = "Ayudas";
+    var userRole = Context.Session.GetString("UserRole");
 }
 
 <div class="container-fluid">
@@ -44,18 +45,18 @@
                             <span class="input-group-text bg-white">
                                 <i class="bi bi-search"></i>
                             </span>
-                            <input type="text" 
-                                   name="busqueda" 
-                                   class="form-control border-start-0" 
+                            <input type="text"
+                                   name="busqueda"
+                                   class="form-control border-start-0"
                                    placeholder="Buscar por título o contenido..."
                                    value="@ViewBag.BusquedaActual">
-                            
+
                             <!-- Mantener filtros actuales en campos ocultos -->
                             <input type="hidden" name="estado" value="@ViewBag.EstadoActual" />
                             <input type="hidden" name="id_usuario" value="@ViewBag.UsuarioActual" />
                             <input type="hidden" name="fecha" value="@ViewBag.FechaActual" />
                             <input type="hidden" name="respuestas" value="@ViewBag.RespuestasActual" />
-                            
+
                             <button class="btn btn-primary" type="submit">
                                 Buscar
                             </button>
@@ -77,14 +78,39 @@
                                     <h5 class="card-title mb-0 text-dark">
                                         @ayuda.descripcion
                                     </h5>
-                                    @if (ayuda.activa)
-                                    {
-                                        <span class="badge bg-success">Activa</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">Inactiva</span>
-                                    }
+                                    <div class="d-flex gap-2 align-items-center">
+                                        @if (ayuda.activa)
+                                        {
+                                            <span class="badge bg-success">Activa</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactiva</span>
+                                        }
+
+                                        <!-- Botones de admin (solo visible para administradores) -->
+                                        @if (userRole == "admin")
+                                        {
+                                            <div class="btn-group" role="group" onclick="event.stopPropagation();">
+                                                <!-- Boton para cambiar estado -->
+                                                <form asp-controller="Ayuda" asp-action="CambiarEstado" method="post" class="d-inline">
+                                                    <input type="hidden" name="id" value="@ayuda.id" />
+                                                    <button type="submit" class="btn btn-sm btn-warning" title="@(ayuda.activa ? "Desactivar" : "Activar")">
+                                                        <i class="bi bi-@(ayuda.activa ? "pause" : "play")-circle"></i>
+                                                    </button>
+                                                </form>
+
+                                                <!-- Boton para eliminar -->
+                                                <form asp-controller="Ayuda" asp-action="Eliminar" method="post" class="d-inline"
+                                                      onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta ayuda? Esta acción no se puede deshacer.');">
+                                                    <input type="hidden" name="id" value="@ayuda.id" />
+                                                    <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        }
+                                    </div>
                                 </div>
                                 <p class="card-text text-muted mb-2">
                                     @(ayuda.contenido.Length > 150 ? ayuda.contenido.Substring(0, 150) + "..." : ayuda.contenido)
@@ -123,10 +149,10 @@
                 </div>
                 <div class="card-body">
                     <form asp-controller="Ayuda" asp-action="AyudaHome" method="get">
-                        
+
                         <!-- Mantener búsqueda actual -->
                         <input type="hidden" name="busqueda" value="@ViewBag.BusquedaActual" />
-                        
+
                         <!-- Filtro por estado -->
                         <div class="mb-4">
                             <label class="form-label fw-bold">
@@ -134,21 +160,21 @@
                                 Estado
                             </label>
                             <div class="form-check">
-                                <input class="form-check-input" 
-                                       type="radio" 
-                                       name="estado" 
-                                       id="estadoTodas" 
-                                       value="" 
+                                <input class="form-check-input"
+                                       type="radio"
+                                       name="estado"
+                                       id="estadoTodas"
+                                       value=""
                                        @(string.IsNullOrEmpty(ViewBag.EstadoActual) ? "checked" : "")>
                                 <label class="form-check-label" for="estadoTodas">
                                     Todas
                                 </label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" 
-                                       type="radio" 
-                                       name="estado" 
-                                       id="estadoActivas" 
+                                <input class="form-check-input"
+                                       type="radio"
+                                       name="estado"
+                                       id="estadoActivas"
                                        value="1"
                                        @(ViewBag.EstadoActual == "1" ? "checked" : "")>
                                 <label class="form-check-label" for="estadoActivas">
@@ -156,10 +182,10 @@
                                 </label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" 
-                                       type="radio" 
-                                       name="estado" 
-                                       id="estadoInactivas" 
+                                <input class="form-check-input"
+                                       type="radio"
+                                       name="estado"
+                                       id="estadoInactivas"
                                        value="0"
                                        @(ViewBag.EstadoActual == "0" ? "checked" : "")>
                                 <label class="form-check-label" for="estadoInactivas">
@@ -169,7 +195,7 @@
                         </div>
 
                         <!-- Filtro por usuario (solo para admin) -->
-                        @if (Context.Session.GetString("UserRole") == "admin")
+                        @if (userRole == "admin")
                         {
                             <div class="mb-4">
                                 <label class="form-label fw-bold">
@@ -243,14 +269,31 @@
         .hover-shadow {
             transition: all 0.3s ease;
         }
-        .hover-shadow:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-        }
-        
+
+            .hover-shadow:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+            }
+
         /* Estilos para el sidebar sticky */
         .sticky-top {
             z-index: 1020;
         }
+
+        /* Estilos para los botones de admin */
+        .btn-group .btn {
+            border-radius: 0.25rem;
+        }
+
+            .btn-group .btn:not(:last-child) {
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+            }
+
+            .btn-group .btn:not(:first-child) {
+                border-top-left-radius: 0;
+                border-bottom-left-radius: 0;
+                margin-left: -1px;
+            }
     </style>
 }

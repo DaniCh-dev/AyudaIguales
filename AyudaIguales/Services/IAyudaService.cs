@@ -14,5 +14,11 @@ namespace AyudaIguales.Services
         Task<Ayuda?> ObtenerAyudaPorIdAsync(int id, int id_centro);
         // Obtener respuestas de una ayuda con valoraciones
         Task<ObtenerRespuestasResponse> ObtenerRespuestasAsync(int id_ayuda, int id_usuario_actual);
+
+        // Eliminar ayuda (solo admin)
+        Task<ResponseBase> EliminarAyudaAsync(int id, int id_usuario, string rol);
+
+        // Activar/Desactivar ayuda (solo admin)
+        Task<ToggleAyudaResponse> CambiarEstadoAyudaAsync(int id, int id_usuario, string rol);
     }
 }

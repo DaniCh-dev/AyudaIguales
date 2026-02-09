@@ -82,4 +82,19 @@ namespace AyudaIguales.Models
         public string msg { get; set; } = string.Empty;
         public List<RespuestaDetalle> respuestas { get; set; } = new List<RespuestaDetalle>();
     }
+
+    // Respuesta base genérica
+    public class ResponseBase
+    {
+        public bool ok { get; set; }
+        public string msg { get; set; } = string.Empty;
+    }
+
+    // Respuesta al cambiar estado de ayuda
+    public class ToggleAyudaResponse
+    {
+        public bool ok { get; set; }
+        public string msg { get; set; } = string.Empty;
+        public bool activa { get; set; }
+    }
 }

@@ -253,6 +253,74 @@ namespace AyudaIguales.Controllers
             // Redirigir al detalle de la ayuda
             return RedirectToAction("DetalleAyuda", new { id = request.id_ayuda });
         }
-   
+
+        // POST: Eliminar ayuda (solo admin)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            // Verificar si hay sesion iniciada
+            var userIdString = HttpContext.Session.GetString("UserId");
+            var userRole = HttpContext.Session.GetString("UserRole");
+
+            if (string.IsNullOrEmpty(userIdString) || userRole != "admin")
+            {
+                TempData["Error"] = "No tienes permisos para realizar esta acción";
+                return RedirectToAction("AyudaHome");
+            }
+
+            int id_usuario = int.Parse(userIdString);
+
+            // Llamar al servicio para eliminar
+            var resultado = await _ayudaService.EliminarAyudaAsync(id, id_usuario, userRole);
+
+            if (resultado.ok)
+            {
+                TempData["Success"] = "Ayuda eliminada correctamente";
+            }
+            else
+            {
+                TempData["Error"] = resultado.msg;
+            }
+
+            return RedirectToAction("AyudaHome");
+        }
+
+        // POST: Cambiar estado de ayuda (solo admin)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CambiarEstado(int id)
+        {
+            // Verificar si hay sesion iniciada
+            var userIdString = HttpContext.Session.GetString("UserId");
+            var userRole = HttpContext.Session.GetString("UserRole");
+
+            if (string.IsNullOrEmpty(userIdString) || userRole != "admin")
+            {
+                TempData["Error"] = "No tienes permisos para realizar esta acción";
+                return RedirectToAction("AyudaHome");
+            }
+
+            int id_usuario = int.Parse(userIdString);
+
+            // Llamar al servicio para cambiar estado
+            var resultado = await _ayudaService.CambiarEstadoAyudaAsync(id, id_usuario, userRole);
+
+            if (resultado.ok)
+            {
+                TempData["Success"] = resultado.msg;
+            }
+            else
+            {
+                TempData["Error"] = resultado.msg;
+            }
+
+            return RedirectToAction("AyudaHome");
+        }
+
+
+
+
+
     }
 }

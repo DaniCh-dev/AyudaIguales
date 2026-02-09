@@ -16,11 +16,25 @@
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
             <div class="container">
-                <a class="navbar-brand fw-bold d-flex align-items-center gap-2"
-                   asp-controller="Home" asp-action="Index">
-                    <i class="bi bi-book-half fs-4"></i>
-                    AyudaIguales
-                </a>
+                
+                @* Mostrar opciones según si hay sesión iniciada *@
+                @if (Context.Session.GetString("UserId") != null)
+                {
+
+                    <a class="navbar-brand fw-bold d-flex align-items-center gap-2"
+                       asp-controller="Ayuda" asp-action="AyudaHome">
+                        <i class="bi bi-book-half fs-4"></i>
+                        AyudaIguales
+                    </a>
+                }
+                else
+                {
+                    <a class="navbar-brand fw-bold d-flex align-items-center gap-2"
+                       asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-book-half fs-4"></i>
+                        AyudaIguales
+                    </a>
+                }
 
                 <button class="navbar-toggler" type="button"
                         data-bs-toggle="collapse"

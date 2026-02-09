@@ -22,6 +22,7 @@ builder.Services.AddScoped<ICentroService, CentroService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAyudaService, AyudaService>();
 builder.Services.AddScoped<IValoracionService, ValoracionService>();
+builder.Services.AddScoped<IRespuestaService, RespuestaService>();
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);

@@ -8,12 +8,14 @@ namespace AyudaIguales.Controllers
     {
         private readonly IAyudaService _ayudaService;
         private readonly IUserService _userService;
+        private readonly IRespuestaService _respuestaService;
 
         // Constructor con ambos servicios inyectados
-        public AyudaController(IAyudaService ayudaService, IUserService userService)
+        public AyudaController(IAyudaService ayudaService, IUserService userService, IRespuestaService respuestaService)
         {
             _ayudaService = ayudaService;
             _userService = userService;
+            _respuestaService = respuestaService;
         }
 
         // GET: Mostrar página principal de ayudas (con o sin filtros)
@@ -179,5 +181,78 @@ namespace AyudaIguales.Controllers
             System.Diagnostics.Debug.WriteLine($"Cantidad: {respuestasResult.respuestas?.Count ?? 0}");
             return View(ayuda);
         }
+    
+
+    
+        // GET: Mostrar formulario para responder a una ayuda
+        [HttpGet]
+        public async Task<IActionResult> Responder(int id)
+        {
+            // Verificar si hay sesion iniciada
+            var userIdString = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return RedirectToAction("Login", "User");
+            }
+
+            // Obtener id_centro de la sesion
+            var centroIdString = HttpContext.Session.GetString("CentroId");
+            if (string.IsNullOrEmpty(centroIdString))
+            {
+                TempData["Error"] = "No se pudo obtener el centro del usuario";
+                return RedirectToAction("Login", "User");
+            }
+            int id_centro = int.Parse(centroIdString);
+
+            // Obtener la ayuda
+            var ayuda = await _ayudaService.ObtenerAyudaPorIdAsync(id, id_centro);
+            if (ayuda == null)
+            {
+                TempData["Error"] = "Ayuda no encontrada";
+                return RedirectToAction("AyudaHome");
+            }
+
+            // Pasar la ayuda a la vista
+            return View(ayuda);
+        }
+
+        // POST: Crear respuesta a una ayuda
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Responder(CrearRespuestaRequest request)
+        {
+            // Verificar si hay sesion iniciada
+            var userIdString = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return RedirectToAction("Login", "User");
+            }
+
+            // Validar modelo
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Datos no válidos";
+                return RedirectToAction("DetalleAyuda", new { id = request.id_ayuda });
+            }
+
+            // Asignar el ID del usuario desde la sesion
+            request.id_usuario = int.Parse(userIdString);
+
+            // Llamar al servicio para crear la respuesta
+            var resultado = await _respuestaService.CrearRespuestaAsync(request);
+
+            if (resultado.ok)
+            {
+                TempData["Success"] = "Respuesta publicada correctamente";
+            }
+            else
+            {
+                TempData["Error"] = resultado.msg;
+            }
+
+            // Redirigir al detalle de la ayuda
+            return RedirectToAction("DetalleAyuda", new { id = request.id_ayuda });
+        }
+   
     }
 }

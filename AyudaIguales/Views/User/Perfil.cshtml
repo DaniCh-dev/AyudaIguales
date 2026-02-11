@@ -1,0 +1,488 @@
+﻿@using AyudaIguales.Models
+@{
+    ViewData["Title"] = "Mi Perfil";
+    var estadisticas = ViewBag.Estadisticas as Estadisticas;
+    var rol = ViewBag.Rol as string;
+    var userId = ViewBag.UserId;
+    var centroId = ViewBag.CentroId;
+    var apiUrl = "http://localhost/ayuda_iguales/";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="bi bi-person-circle text-primary"></i>
+            @(rol == "admin" ? "Estadísticas del Centro" : "Mi Perfil y Estadísticas")
+        </h2>
+        <div>
+            <a href="@(apiUrl)exportarInforme.php?id_usuario=@userId&id_centro=@centroId&rol=@rol&tipo=csv"
+               class="btn btn-success" target="_blank">
+                <i class="bi bi-file-earmark-excel"></i>
+                Exportar CSV
+            </a>
+            <a href="@(apiUrl)exportarInforme.php?id_usuario=@userId&id_centro=@centroId&rol=@rol&tipo=html"
+               class="btn btn-primary" target="_blank">
+                <i class="bi bi-file-earmark-text"></i>
+                Exportar HTML
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (estadisticas != null)
+    {
+        @if (rol == "admin")
+        {
+            <!-- ESTADISTICAS ADMIN -->
+            <div class="row">
+                <!-- Tarjetas de resumen -->
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Usuarios</h5>
+                            <h2>@estadisticas.total_usuarios</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Ayudas</h5>
+                            <h2>@estadisticas.total_ayudas</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-info">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Respuestas</h5>
+                            <h2>@estadisticas.total_respuestas</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body">
+                            <h5 class="card-title">Promedio Valoraciones</h5>
+                            <h2>@estadisticas.promedio_valoraciones <small>/5</small></h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graficos -->
+            <div class="row mt-4">
+                <!-- Grafico de ayudas por mes -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Ayudas por Mes (Últimos 6 meses)</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartAyudasMes"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grafico de ayudas activas/inactivas -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Estado de Ayudas</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartEstadoAyudas"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grafico de ayudas con/sin respuestas -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Ayudas con/sin Respuestas</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartRespuestas"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top usuarios mas activos -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Top 5 Usuarios Más Activos</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartTopUsuarios"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tablas -->
+            <div class="row mt-4">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Top Usuarios por Ayudas Creadas</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Usuario</th>
+                                        <th>Ayudas</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (estadisticas.top_usuarios_ayudas != null && estadisticas.top_usuarios_ayudas.Count > 0)
+                                    {
+                                        int pos = 1;
+                                        @foreach (var usuario in estadisticas.top_usuarios_ayudas)
+                                        {
+                                            <tr>
+                                                <td>@pos</td>
+                                                <td>@usuario.nombre_usuario</td>
+                                                <td><span class="badge bg-primary">@usuario.total_ayudas</span></td>
+                                            </tr>
+                                            pos++;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr><td colspan="3" class="text-center text-muted">No hay datos</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Top Usuarios por Respuestas Dadas</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Usuario</th>
+                                        <th>Respuestas</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (estadisticas.top_usuarios_respuestas != null && estadisticas.top_usuarios_respuestas.Count > 0)
+                                    {
+                                        int pos = 1;
+                                        @foreach (var usuario in estadisticas.top_usuarios_respuestas)
+                                        {
+                                            <tr>
+                                                <td>@pos</td>
+                                                <td>@usuario.nombre_usuario</td>
+                                                <td><span class="badge bg-info">@usuario.total_respuestas</span></td>
+                                            </tr>
+                                            pos++;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr><td colspan="3" class="text-center text-muted">No hay datos</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- ESTADISTICAS USUARIO -->
+            <div class="row">
+                <!-- Tarjetas de resumen -->
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">Mis Ayudas</h5>
+                            <h2>@estadisticas.mis_ayudas</h2>
+                            <small>@estadisticas.mis_ayudas_activas activas</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <h5 class="card-title">Respuestas Dadas</h5>
+                            <h2>@estadisticas.mis_respuestas</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-info">
+                        <div class="card-body">
+                            <h5 class="card-title">Respuestas Recibidas</h5>
+                            <h2>@estadisticas.respuestas_recibidas</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body">
+                            <h5 class="card-title">Mi Valoración</h5>
+                            <h2>@estadisticas.mi_promedio_valoraciones <small>/5</small></h2>
+                            <small>@estadisticas.total_valoraciones_recibidas valoraciones</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metricas adicionales -->
+            <div class="row mt-3">
+                <div class="col-md-12 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Tasa de Respuesta</h5>
+                            <div class="progress" style="height: 30px;">
+                                <div class="progress-bar bg-success" role="progressbar"
+                                     style="width: @estadisticas.tasa_respuesta%;"
+                                     aria-valuenow="@estadisticas.tasa_respuesta" aria-valuemin="0" aria-valuemax="100">
+                                    @estadisticas.tasa_respuesta%
+                                </div>
+                            </div>
+                            <small class="text-muted">Porcentaje de tus ayudas que han recibido al menos una respuesta</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graficos -->
+            <div class="row mt-4">
+                <!-- Grafico de mis ayudas por mes -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Mis Ayudas por Mes</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartMisAyudas"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grafico de mis respuestas por mes -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Mis Respuestas por Mes</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartMisRespuestas"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Distribucion de valoraciones recibidas -->
+                <div class="col-md-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Distribución de Mis Valoraciones Recibidas</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartValoraciones"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i>
+            No hay estadísticas disponibles en este momento.
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        @if (estadisticas != null)
+        {
+                @if (rol == "admin")
+                {
+                        <text>
+                        // Grafico de ayudas por mes
+                        const ctxAyudasMes = document.getElementById('chartAyudasMes');
+                        new Chart(ctxAyudasMes, {
+                            type: 'line',
+                            data: {
+                                labels: [@Html.Raw(string.Join(",", estadisticas.ayudas_por_mes.Select(d => $"'{d.mes}'")))],
+                                datasets: [{
+                                    label: 'Ayudas',
+                                    data: [@Html.Raw(string.Join(",", estadisticas.ayudas_por_mes.Select(d => d.total)))],
+                                    borderColor: 'rgb(75, 192, 192)',
+                                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                    tension: 0.1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: { display: true }
+                                }
+                            }
+                        });
+
+                        // Grafico de estado de ayudas
+                        const ctxEstado = document.getElementById('chartEstadoAyudas');
+                        new Chart(ctxEstado, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Activas', 'Inactivas'],
+                                datasets: [{
+                                    data: [@estadisticas.ayudas_activas, @estadisticas.ayudas_inactivas],
+                                    backgroundColor: ['rgb(75, 192, 192)', 'rgb(255, 99, 132)']
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: { position: 'bottom' }
+                                }
+                            }
+                        });
+
+                        // Grafico de ayudas con/sin respuestas
+                        const ctxRespuestas = document.getElementById('chartRespuestas');
+                        new Chart(ctxRespuestas, {
+                            type: 'pie',
+                            data: {
+                                labels: ['Con Respuestas', 'Sin Respuestas'],
+                                datasets: [{
+                                    data: [@estadisticas.ayudas_con_respuestas, @estadisticas.ayudas_sin_respuestas],
+                                    backgroundColor: ['rgb(54, 162, 235)', 'rgb(255, 205, 86)']
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: { position: 'bottom' }
+                                }
+                            }
+                        });
+
+                        // Grafico de top usuarios
+                        const ctxTop = document.getElementById('chartTopUsuarios');
+                        new Chart(ctxTop, {
+                            type: 'bar',
+                            data: {
+                                labels: [@Html.Raw(string.Join(",", estadisticas.top_usuarios_ayudas.Select(u => $"'{u.nombre_usuario}'")))],
+                                datasets: [{
+                                    label: 'Ayudas',
+                                    data: [@Html.Raw(string.Join(",", estadisticas.top_usuarios_ayudas.Select(u => u.total_ayudas)))],
+                                    backgroundColor: 'rgba(75, 192, 192, 0.5)'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: { display: false }
+                                },
+                                scales: {
+                                    y: { beginAtZero: true }
+                                }
+                            }
+                        });
+                        </text>
+                }
+                else
+                {
+                        <text>
+                        // Grafico de mis ayudas
+                        const ctxMisAyudas = document.getElementById('chartMisAyudas');
+                        new Chart(ctxMisAyudas, {
+                            type: 'bar',
+                            data: {
+                                labels: [@Html.Raw(string.Join(",", estadisticas.mis_ayudas_por_mes.Select(d => $"'{d.mes}'")))],
+                                datasets: [{
+                                    label: 'Mis Ayudas',
+                                    data: [@Html.Raw(string.Join(",", estadisticas.mis_ayudas_por_mes.Select(d => d.total)))],
+                                    backgroundColor: 'rgba(75, 192, 192, 0.5)'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: { display: false }
+                                },
+                                scales: {
+                                    y: { beginAtZero: true }
+                                }
+                            }
+                        });
+
+                        // Grafico de mis respuestas
+                        const ctxMisRespuestas = document.getElementById('chartMisRespuestas');
+                        new Chart(ctxMisRespuestas, {
+                            type: 'bar',
+                            data: {
+                                labels: [@Html.Raw(string.Join(",", estadisticas.mis_respuestas_por_mes.Select(d => $"'{d.mes}'")))],
+                                datasets: [{
+                                    label: 'Mis Respuestas',
+                                    data: [@Html.Raw(string.Join(",", estadisticas.mis_respuestas_por_mes.Select(d => d.total)))],
+                                    backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: { display: false }
+                                },
+                                scales: {
+                                    y: { beginAtZero: true }
+                                }
+                            }
+                        });
+
+                        // Grafico de valoraciones
+                        const ctxValoraciones = document.getElementById('chartValoraciones');
+                        new Chart(ctxValoraciones, {
+                            type: 'bar',
+                            data: {
+                                labels: [@Html.Raw(string.Join(",", estadisticas.distribucion_valoraciones.Select(d => $"'{d.nota} estrellas'")))],
+                                datasets: [{
+                                    label: 'Cantidad',
+                                    data: [@Html.Raw(string.Join(",", estadisticas.distribucion_valoraciones.Select(d => d.cantidad)))],
+                                    backgroundColor: 'rgba(255, 205, 86, 0.5)'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: { display: false }
+                                },
+                                scales: {
+                                    y: { beginAtZero: true }
+                                }
+                            }
+                        });
+                        </text>
+                }
+        }
+    </script>
+}

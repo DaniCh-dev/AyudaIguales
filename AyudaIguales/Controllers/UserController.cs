@@ -8,9 +8,13 @@ namespace AyudaIguales.Controllers
     {
         private readonly IUserService _userService;
 
-        public UserController(IUserService userService)
+        private readonly IEstadisticasService _estadisticasService;
+
+        
+        public UserController(IUserService userService, IEstadisticasService estadisticasService)
         {
             _userService = userService;
+            _estadisticasService = estadisticasService;
         }
 
         // GET: Mostrar formulario de registro
@@ -116,6 +120,38 @@ namespace AyudaIguales.Controllers
 
             return Json(resultado);
         }
+        // GET: Ver perfil y estadisticas
+[HttpGet]
+public async Task<IActionResult> Perfil()
+{
+    // Verificar si hay sesion iniciada
+    var userIdString = HttpContext.Session.GetString("UserId");
+    if (string.IsNullOrEmpty(userIdString))
+    {
+        return RedirectToAction("Login");
+    }
+
+    var centroIdString = HttpContext.Session.GetString("CentroId");
+    var rol = HttpContext.Session.GetString("UserRole") ?? "usuario";
+
+    int id_usuario = int.Parse(userIdString);
+    int id_centro = int.Parse(centroIdString ?? "0");
+
+    // Obtener estadisticas
+    var resultado = await _estadisticasService.ObtenerEstadisticasAsync(id_usuario, id_centro, rol);
+
+    if (!resultado.ok)
+    {
+        TempData["Error"] = resultado.msg;
+    }
+
+    ViewBag.Estadisticas = resultado.estadisticas;
+    ViewBag.Rol = rol;
+    ViewBag.UserId = id_usuario;
+    ViewBag.CentroId = id_centro;
+
+    return View();
+}
         public IActionResult Index()
         {
             return View();

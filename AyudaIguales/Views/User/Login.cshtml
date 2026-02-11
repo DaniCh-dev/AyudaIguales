@@ -10,13 +10,7 @@
                 <div class="card-body p-4">
                     <h1 class="card-title text-center mb-4">Iniciar Sesión</h1>
 
-                    @* Mostrar mensaje de éxito *@
-                    @if (TempData["Success"] != null)
-                    {
-                        <div class="alert alert-success" role="alert">
-                            @TempData["Success"]
-                        </div>
-                    }
+                   
 
                     @* Mostrar mensaje de error *@
                     @if (TempData["Error"] != null)
